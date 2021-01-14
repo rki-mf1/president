@@ -18,7 +18,7 @@ Notes:
 
 Requirements:
 
-- conda install -y -c bioconda python=3.8 pblat pandas
+- conda install -y -c bioconda python=3.8 pblat screed pandas
 
 ANI definition:
 
@@ -63,7 +63,7 @@ def calculate_nucleotide_identity(query, alignments, max_invalid):
     # Pandas can be replaced with split to reduce dependencies
     alignments = pd.read_csv(
         alignments, header=None, sep='\t', skiprows=5)
-    labels = ['Matches', 'Mismatch', 'RepMatch', 'Ns', 'QGapCount',
+    labels = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
               'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
               'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
               'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
