@@ -14,7 +14,7 @@ are considered identical to each other.
 
 #### Requirements:
 ```
-conda create -y -n president -c bioconda python=3.8 mafft screed && conda activate president
+conda create -y -n president -c bioconda python=3.8 pblat screed pandas && conda activate president
 ```
 
 #### Usage:
@@ -26,7 +26,7 @@ python pairwise_nucleotide_identity.py --query NC_045512.2.20mis.fasta --referen
 The script provides __three different output metrics__ to assess the quality of the query sequence in comparison to the reference sequence. The rationale behind this is, that ambiguous bases (Ns) can impact sequence identity differently depending on how they are counted. 
 
 ```
-Running Mafft ...
+Running pblat ...
 a) 0.9987 nucleotide identity
 b) 0.9994 nucleotide identity (excluding non-ACTG)
 c) 20 non-ACTG symbols out of 29903
