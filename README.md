@@ -1,10 +1,8 @@
 ![](https://img.shields.io/github/v/release/hoelzer-lab/president)
 ![](https://img.shields.io/badge/licence-MIT-lightgrey.svg)
 ![](https://img.shields.io/badge/python-3.8-orange)
-[![](https://img.shields.io/badge/ANI-definition-violet.svg)](https://pubmed.ncbi.nlm.nih.gov/17220447/)
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/martinhoelzer.svg?style=social)](https://twitter.com/phiweger) 
-[![Twitter Follow](https://img.shields.io/twitter/follow/phiweger.svg?style=social)](https://twitter.com/martinhoelzer) 
+[![](https://img.shields.io/badge/ANI-definition-violet.svg)](https://pubmed.ncbi.nlm.nih.gov/17220447/)
 
 # PRESIDENT: PaiRwisE Sequence IDENtiTy
 Calculate pairwise nucleotide identity with respect to a reference sequence.
