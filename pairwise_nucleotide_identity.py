@@ -64,9 +64,9 @@ def calculate_nucleotide_identity(query, alignments, max_invalid):
     '''
     query_ids = []
     valid_sequences = []
-    non_canonicals = []
+    ambiguous_bases = []
     identities = []
-    non_canonical_identities = []
+    ambiguous_identities = []
     query_lengths = []
     index = 0
     with screed.open(query) as seqfile:
@@ -75,27 +75,28 @@ def calculate_nucleotide_identity(query, alignments, max_invalid):
             # Consider only sites where the query has non-ACTG characters
             # Metric issue #2 (B)
             non_canonical = sum([1 for i in qry.sequence if i not in 'ACTG'])
-            non_canonicals.append(non_canonical)
+            ambiguous_bases.append(non_canonical)
             if non_canonical > max_invalid:
                 valid_sequences.append(False)
-                identities.append(0)
-                non_canonical_identities.append(0)
-                query_lengths.append(len(qry.sequence))
+#                identities.append(0)
+#                ambiguous_identities.append(0)
+#                query_lengths.append(len(qry.sequence))
             else:
                 valid_sequences.append(True)
-                # Metric issue #2 (A)
-                # Ns in the query count as mismatch
-                identities.append(round(alignments.at[index, 'Matches'] / len(qry.sequence), 4))
-                # Ns in the query don't count
-                non_canonical_identities.append(round(alignments.at[index, 'Matches'] / (len(qry.sequence) - non_canonical), 4))
-                query_lengths.append(len(qry.sequence))
+            # Metric issue #2 (A)
+            # Ns in the query count as mismatch
+            identities.append(round(alignments.at[index, 'Matches'] / len(qry.sequence), 4))
+            # Ns in the query don't count
+            ambiguous_identities.append(round(alignments.at[index, 'Matches'] / (len(qry.sequence) - non_canonical), 4))
+            query_lengths.append(len(qry.sequence))
+            index = index + 1
 
     metrics = pd.DataFrame({
         'ID': query_ids,
         'Valid': valid_sequences,
         'Identity': identities,
-        'Non-Canonical Identity': non_canonical_identities,
-        'Non-Canonical': non_canonicals,
+        'Ambiguous Identity': ambiguous_identities,
+        'Ambiguous Bases': ambiguous_bases,
         'Query Length': query_lengths
     })
     return metrics
