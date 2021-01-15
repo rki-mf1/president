@@ -10,7 +10,7 @@ pairwise nucleotide identity with respect to the reference sequence.
 
 Usage:
 
-python pairwise_nucleotide_identity.py --query tiny_test.masked_consensus.fasta --reference NC_045512.2.fasta -x 3000 -p 8
+python pairwise_nucleotide_identity.py --query tiny_test.masked_consensus.fasta --reference NC_045512.2.fasta -x 3000 -p 8 -o report.tsv
 
 Notes:
 
@@ -47,20 +47,6 @@ def is_tool(name):
 
 
 def calculate_nucleotide_identity(query, alignments, max_invalid):
-    '''
-    Calculate nucleotide ident from a 2-sequence MSA
-    '''
-    with screed.open(query) as file:
-        qry = next(file).sequence
-
-
-    # Consider only sites where the query has non-ACTG characters
-    # Metric issue #2 (B)
-    non_canonical = sum([1 for i in qry if i not in 'ACTG'])
-    if non_canonical > max_invalid:
-        raise ValueError('Too many non-canonical nucleotides, abort!')
-
-
     # Read the alignment(s) with pandas
     # Pandas can be replaced with split to reduce dependencies
     alignments = pd.read_csv(
@@ -73,16 +59,43 @@ def calculate_nucleotide_identity(query, alignments, max_invalid):
     alignments.columns = labels
 
 
-    # Metric issue #2 (A)
-    # Ns in the query count as mismatch
-    ident = round(alignments.at[0, 'Matches'] / len(qry), 4)
+    '''
+    Calculate nucleotide ident from a 2-sequence MSA
+    '''
+    query_ids = []
+    invalid_sequences = []
+    non_canonicals = []
+    identities = []
+    non_canonical_identities = []
+    query_lengths = []
+    index = 0
+    with screed.open(query) as seqfile:
+        for qry in seqfile:
+            query_ids.append(qry.name)
+            # Consider only sites where the query has non-ACTG characters
+            # Metric issue #2 (B)
+            non_canonical = sum([1 for i in qry.sequence if i not in 'ACTG'])
+            non_canonicals.append(non_canonical)
+            if non_canonical > max_invalid:
+                invalid_sequences.append(True)
+            else:
+                invalid_sequences.append(False)
+            # Metric issue #2 (A)
+            # Ns in the query count as mismatch
+            identities.append(round(alignments.at[index, 'Matches'] / len(qry.sequence), 4))
+            # Ns in the query don't count
+            non_canonical_identities.append(round(alignments.at[index, 'Matches'] / (len(qry.sequence) - non_canonical), 4))
+            query_lengths.append(len(qry.sequence))
 
-
-    # Ns in the query don't count
-    ident_non_canonical = round(alignments.at[0, 'Matches'] / (len(qry) - non_canonical), 4)
-
-
-    return ident, ident_non_canonical, non_canonical, len(qry)
+    metrics = pd.DataFrame({
+        'ID': query_ids,
+        'Invalid': invalid_sequences,
+        'Identity': identities,
+        'Non-Canonical Identity': non_canonical_identities,
+        'Non-Canonical': non_canonicals,
+        'Query Length': query_lengths
+    })
+    return metrics
 
 
 def main():
@@ -96,6 +109,8 @@ def main():
         help='Maximum number of non-ACTG positions allowed in query')
     parser.add_argument('-p', '--threads', type=int, default=4,
         help='Number of threads to use')
+    parser.add_argument('-o', '--output', required=True,
+        help='Output TSV file to write report')
     args = parser.parse_args()
 
 
@@ -113,12 +128,10 @@ def main():
     _ = subprocess.check_output(cmd, shell=True)
 
 
-    ident, identN, nc, len_  = calculate_nucleotide_identity(
+    metrics  = calculate_nucleotide_identity(
         args.query, alignments, args.max_invalid)
     os.remove(alignments)
-    print(f'{ident} nucleotide identity')
-    print(f'{identN} nucleotide identity (excluding non-ACTG)')
-    print(f'{nc} non-ACTG symbols out of {len_}')
+    metrics.to_csv(args.output, index=False, sep='\t')
 
 
 if __name__ == "__main__":

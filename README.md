@@ -18,7 +18,7 @@ conda create -y -n president -c bioconda python=3.8 pblat=2.5 screed pandas && c
 
 #### Usage:
 ```
-python pairwise_nucleotide_identity.py --query NC_045512.2.20mis.fasta --reference NC_045512.2.fasta -x 3000 -p 8
+python pairwise_nucleotide_identity.py --query NC_045512.2.20mis.fasta --reference NC_045512.2.fasta -x 3000 -p 8 -o report.tsv
 ```
 
 #### Output:
