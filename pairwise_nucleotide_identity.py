@@ -63,7 +63,7 @@ def calculate_nucleotide_identity(query, alignments, max_invalid):
     Calculate nucleotide ident from a 2-sequence MSA
     '''
     query_ids = []
-    invalid_sequences = []
+    valid_sequences = []
     non_canonicals = []
     identities = []
     non_canonical_identities = []
@@ -77,19 +77,22 @@ def calculate_nucleotide_identity(query, alignments, max_invalid):
             non_canonical = sum([1 for i in qry.sequence if i not in 'ACTG'])
             non_canonicals.append(non_canonical)
             if non_canonical > max_invalid:
-                invalid_sequences.append(True)
+                valid_sequences.append(False)
+                identities.append(0)
+                non_canonical_identities.append(0)
+                query_lengths.append(len(qry.sequence))
             else:
-                invalid_sequences.append(False)
-            # Metric issue #2 (A)
-            # Ns in the query count as mismatch
-            identities.append(round(alignments.at[index, 'Matches'] / len(qry.sequence), 4))
-            # Ns in the query don't count
-            non_canonical_identities.append(round(alignments.at[index, 'Matches'] / (len(qry.sequence) - non_canonical), 4))
-            query_lengths.append(len(qry.sequence))
+                valid_sequences.append(True)
+                # Metric issue #2 (A)
+                # Ns in the query count as mismatch
+                identities.append(round(alignments.at[index, 'Matches'] / len(qry.sequence), 4))
+                # Ns in the query don't count
+                non_canonical_identities.append(round(alignments.at[index, 'Matches'] / (len(qry.sequence) - non_canonical), 4))
+                query_lengths.append(len(qry.sequence))
 
     metrics = pd.DataFrame({
         'ID': query_ids,
-        'Invalid': invalid_sequences,
+        'Invalid': valid_sequences,
         'Identity': identities,
         'Non-Canonical Identity': non_canonical_identities,
         'Non-Canonical': non_canonicals,
