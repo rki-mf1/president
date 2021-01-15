@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
-# author: @phiweger, @martinhoelzer
+# authors: 
+# RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
+# HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
 
 '''
 Given a reference and a query sequence (which can be fragmented), calculate
@@ -18,7 +20,7 @@ Notes:
 
 Requirements:
 
-- conda install -y -c bioconda python=3.8 pblat screed pandas
+- conda install -y -c bioconda python=3.8 pblat=2.5 screed pandas
 
 ANI definition:
 
