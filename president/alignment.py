@@ -1,13 +1,12 @@
 """Alignment Modules used in president."""
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import tempfile
 import subprocess
 
+import pandas as pd
+
+
 def pblat(threads, reference, query, verbose=0):
-    """
-    Wrapper to perform pblat alignment.
+    """Perform blat alignment.
 
     Parameters
     ----------
@@ -32,4 +31,30 @@ def pblat(threads, reference, query, verbose=0):
         print(cmd)
     _ = subprocess.check_output(cmd, shell=True)
     print('Finished pblat.')
+    return alignments
+
+
+def parse_alignment(alignment_file):
+    """
+    Parse a given alignment file into a pandas dataframe.
+
+    Parameters
+    ----------
+    alignment_file : str
+        location of the alignment file from pblat.
+
+    Returns
+    -------
+    None.
+
+    """
+    # Read the alignment(s) with pandas
+    # Pandas can be replaced with split to reduce dependencies
+    alignments = pd.read_csv(alignment_file, header=None, sep='\t', skiprows=5)
+    labels = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
+              'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
+              'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
+              'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
+              'QStarts', 'TStarts']
+    alignments.columns = labels
     return alignments

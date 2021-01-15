@@ -1,20 +1,23 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import screed
+"""Module to compute alignment statistics."""
 import pandas as pd
+import numpy as np
+import screed
+from president import alignment
 
 
-def nucleotide_identity(query, alignments, max_invalid):
-    """
-    Calculate nucleotide ident from a 2-sequence MSA.
+def nucleotide_identity(query, alignment_file, max_invalid):
+    """Calculate nucleotide ident from a 2-sequence MSA.
+
+    The query can consists of a multi-fasta file.
 
     Parameters
     ----------
     query : str
         query FASTA location.
-    alignments : str
+
+    alignment_file : str
         alignment FASTA location.
+
     max_invalid : int
         maximal invalid entries in alignment.
 
@@ -29,38 +32,45 @@ def nucleotide_identity(query, alignments, max_invalid):
         ident, ident_non_canonical, non_canonical, len(qry)
 
     """
+    alignments = alignment.parse_alignment(alignment_file)
+    # get number of sequences and init results
+    n_seqs = alignments.shape[0]
 
-    with screed.open(query) as file:
-        qry = next(file).sequence
+    query_ids = np.empty(n_seqs, dtype="object")
+    ambiguous_bases = np.zeros(n_seqs)
+    identities = np.zeros(n_seqs)
+    ambiguous_identities = np.zeros(n_seqs)
+    query_lengths = np.zeros(n_seqs, dtype=np.uint32)
 
+    with screed.open(query) as seqfile:
+        for idx, qry in enumerate(seqfile):
+            # basic sequence info
+            query_ids[idx] = qry.name
 
-    # Consider only sites where the query has non-ACTG characters
-    # Metric issue #2 (B)
-    non_canonical = sum([1 for i in qry if i not in 'ACTG'])
-    if non_canonical > max_invalid:
-        raise ValueError('Too many non-canonical nucleotides, abort!')
+            # Consider only sites where the query has non-ACTG characters
+            # Metric issue #2 (B)
+            ambiguous_bases[idx] = sum([1 for i in qry.sequence if i not in 'ACTG'])
 
+            # Metric valid_sequences #2 (A)
+            # Ns in the query count as mismatch
+            identities[idx] = alignments.at[idx, 'Matches'] / len(qry.sequence)
 
-    # Read the alignment(s) with pandas
-    # Pandas can be replaced with split to reduce dependencies
-    alignments = pd.read_csv(
-        alignments, header=None, sep='\t', skiprows=5)
-    labels = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
-              'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
-              'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
-              'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
-              'QStarts', 'TStarts']
-    alignments.columns = labels
+            # Ns in the query don't count
+            ambiguous_identities[idx] = \
+                alignments.at[idx, 'Matches'] / (len(qry.sequence) - ambiguous_bases[idx])
 
+            query_lengths[idx] = len(qry.sequence)
 
-    # Metric issue #2 (A)
-    # Ns in the query count as mismatch
-    ident = round(alignments.at[0, 'Matches'] / len(qry), 4)
-
-
-    # Ns in the query don't count
-    ident_non_canonical = round(alignments.at[0, 'Matches'] / 
-                                (len(qry) - non_canonical), 4)
-
-
-    return ident, ident_non_canonical, non_canonical, len(qry)
+    # format to single result dataframe
+    metrics = pd.DataFrame({
+        'ID': query_ids,
+        'Valid': ambiguous_bases > max_invalid,
+        'Identity': identities,
+        'Ambiguous Identity': ambiguous_identities,
+        'Ambiguous Bases': ambiguous_bases,
+        'Query Length': query_lengths
+    })
+    # sort by invalid sequences first
+    metrics = metrics.sort_values(by="Valid")
+    metrics = metrics.round(4)
+    return metrics
