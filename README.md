@@ -1,4 +1,3 @@
-![](https://img.shields.io/github/v/release/hoelzer-lab/president)
 ![](https://img.shields.io/badge/licence-MIT-lightgrey.svg)
 ![](https://img.shields.io/badge/python-3.8-orange)
 
@@ -14,7 +13,7 @@ are considered identical to each other.
 
 #### Requirements:
 ```
-conda create -y -n president -c bioconda python=3.8 pblat screed pandas && conda activate president
+conda create -y -n president -c bioconda python=3.8 pblat=2.5 screed pandas && conda activate president
 ```
 
 #### Usage:
