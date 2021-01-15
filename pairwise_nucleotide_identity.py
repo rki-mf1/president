@@ -92,7 +92,7 @@ def calculate_nucleotide_identity(query, alignments, max_invalid):
 
     metrics = pd.DataFrame({
         'ID': query_ids,
-        'Invalid': valid_sequences,
+        'Valid': valid_sequences,
         'Identity': identities,
         'Non-Canonical Identity': non_canonical_identities,
         'Non-Canonical': non_canonicals,
