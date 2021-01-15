@@ -30,4 +30,4 @@ test-functions:
   image: $CI_REGISTRY/rkibioinformaticspipelines/president/testimage:latest
   stage: test
   script:
-    - pytest
+    - pytest -v --cov=president --cov-report term-missing --cov-report html
