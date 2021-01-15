@@ -78,9 +78,6 @@ def calculate_nucleotide_identity(query, alignments, max_invalid):
             ambiguous_bases.append(non_canonical)
             if non_canonical > max_invalid:
                 valid_sequences.append(False)
-#                identities.append(0)
-#                ambiguous_identities.append(0)
-#                query_lengths.append(len(qry.sequence))
             else:
                 valid_sequences.append(True)
             # Metric issue #2 (A)
