@@ -69,7 +69,7 @@ def nucleotide_identity(query, alignment_file, max_invalid):
     # format to single result dataframe
     metrics = pd.DataFrame({
         'ID': query_ids,
-        'Valid': ambiguous_bases > max_invalid,
+        'Valid': ambiguous_bases < max_invalid,
         'Identity': identities,
         'Ambiguous Identity': ambiguous_identities,
         'Ambiguous Bases': ambiguous_bases,
