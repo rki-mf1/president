@@ -1,13 +1,10 @@
 """Alignment Modules used in president."""
-
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import tempfile
 import subprocess
 
+
 def pblat(threads, reference, query, verbose=0):
-    """
-    Wrapper to perform pblat alignment.
+    """Perform blat alignment.
 
     Parameters
     ----------

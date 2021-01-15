@@ -1,22 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+
+import pandas as pd
 from president import alignment
 
-
 fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
-fixtures_loc = '/home/hanjo/workspace/president/tests/fixtures/'
+
 
 def test_pblat_simple_10MM():
     # read sample data
     reference = os.path.join(fixtures_loc, "100bp_0N_sample_reference.fasta")
     query = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
-    
-    # run pblat
+    exp_matches = 95
+    exp_mismatches = 5
+    exp_gaps = 0
+    exp_Ns = 0
 
+    # run pblat
     alignment_f = alignment.pblat(4, reference, query, verbose=1)
 
+    alignments = pd.read_csv(alignment_f, header=None, sep='\t', skiprows=5)
+    alignments.columns = \
+        ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
+         'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
+         'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
+         'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
+         'QStarts', 'TStarts']
 
-    exp_output = \
-
-
+    assert exp_matches == alignments["Matches"].iloc[0]
+    assert exp_mismatches == alignments["Mismatches"].iloc[0]
+    assert exp_gaps == alignments["QGapCount"].iloc[0]
+    assert exp_Ns == alignments["Ns"].iloc[0]

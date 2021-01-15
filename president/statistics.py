@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
+"""Module to compute alignment statistics."""
 import screed
 import pandas as pd
 
 
 def nucleotide_identity(query, alignments, max_invalid):
-    """
-    Calculate nucleotide ident from a 2-sequence MSA.
+    """Calculate nucleotide ident from a 2-sequence MSA.
 
     Parameters
     ----------
@@ -29,17 +26,14 @@ def nucleotide_identity(query, alignments, max_invalid):
         ident, ident_non_canonical, non_canonical, len(qry)
 
     """
-
     with screed.open(query) as file:
         qry = next(file).sequence
-
 
     # Consider only sites where the query has non-ACTG characters
     # Metric issue #2 (B)
     non_canonical = sum([1 for i in qry if i not in 'ACTG'])
     if non_canonical > max_invalid:
         raise ValueError('Too many non-canonical nucleotides, abort!')
-
 
     # Read the alignment(s) with pandas
     # Pandas can be replaced with split to reduce dependencies
@@ -52,15 +46,12 @@ def nucleotide_identity(query, alignments, max_invalid):
               'QStarts', 'TStarts']
     alignments.columns = labels
 
-
     # Metric issue #2 (A)
     # Ns in the query count as mismatch
     ident = round(alignments.at[0, 'Matches'] / len(qry), 4)
 
-
     # Ns in the query don't count
-    ident_non_canonical = round(alignments.at[0, 'Matches'] / 
-                                (len(qry) - non_canonical), 4)
-
+    ident_non_canonical = \
+        round(alignments.at[0, 'Matches'] / (len(qry) - non_canonical), 4)
 
     return ident, ident_non_canonical, non_canonical, len(qry)
