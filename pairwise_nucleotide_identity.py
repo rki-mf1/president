@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 
-# author: @phiweger, @martinhoelzer
+# authors: 
+# RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
+# HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
 
 '''
 Given a reference and a query sequence (which can be fragmented), calculate
@@ -18,7 +20,7 @@ Notes:
 
 Requirements:
 
-- conda install -y -c bioconda python=3.8 mafft screed
+- conda install -y -c bioconda python=3.8 pblat=2.5 screed pandas
 
 ANI definition:
 
@@ -34,8 +36,8 @@ import argparse
 import os
 import subprocess
 import tempfile
-
 import screed
+import pandas as pd
 
 
 def is_tool(name):
@@ -44,32 +46,42 @@ def is_tool(name):
     return which(name) is not None
 
 
-def calculate_nucleotide_identity(path, max_invalid):
+def calculate_nucleotide_identity(query, alignments, max_invalid):
     '''
     Calculate nucleotide ident from a 2-sequence MSA
     '''
-    with screed.open(path) as file:
-        ref = next(file).sequence
+    with screed.open(query) as file:
         qry = next(file).sequence
-    
-    
+
+
     # Consider only sites where the query has non-ACTG characters
     # Metric issue #2 (B)
     non_canonical = sum([1 for i in qry if i not in 'ACTG'])
     if non_canonical > max_invalid:
         raise ValueError('Too many non-canonical nucleotides, abort!')
-    
-    same = 0
-    for r, q in zip(ref, qry):
-        if (q in 'ACTG' and r == q):
-            same += 1
-    
+
+
+    # Read the alignment(s) with pandas
+    # Pandas can be replaced with split to reduce dependencies
+    alignments = pd.read_csv(
+        alignments, header=None, sep='\t', skiprows=5)
+    labels = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
+              'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
+              'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
+              'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
+              'QStarts', 'TStarts']
+    alignments.columns = labels
+
+
     # Metric issue #2 (A)
     # Ns in the query count as mismatch
-    ident = round(same / len(qry), 4)
-    
+    ident = round(alignments.at[0, 'Matches'] / len(qry), 4)
+
+
     # Ns in the query don't count
-    ident_non_canonical = round(same / (len(qry) - non_canonical), 4)
+    ident_non_canonical = round(alignments.at[0, 'Matches'] / (len(qry) - non_canonical), 4)
+
+
     return ident, ident_non_canonical, non_canonical, len(qry)
 
 
@@ -87,23 +99,23 @@ def main():
     args = parser.parse_args()
 
 
-    # Mafft installed?
-    if not is_tool('mafft'):
-        raise ValueError('Mafft aligner not on PATH or marked as executable.')
+    # pblat installed?
+    if not is_tool('pblat'):
+        raise ValueError('pblat aligner not on PATH or marked as executable.')
 
     # Files exist?
     assert os.path.isfile(args.reference) 
     assert os.path.isfile(args.query) 
 
-    print('Running Mafft ...')
-    _, path = tempfile.mkstemp()
-    cmd = f'linsi --quiet --addfragments {args.query} --thread {args.threads} --adjustdirectionaccurately --keeplength --anysymbol {args.reference} > {path}'
+    print('Running pblat ...')
+    _, alignments = tempfile.mkstemp()
+    cmd = f'pblat -threads={args.threads} {args.reference} {args.query} {alignments}'
     _ = subprocess.check_output(cmd, shell=True)
 
 
     ident, identN, nc, len_  = calculate_nucleotide_identity(
-        path, args.max_invalid)
-    os.remove(path)
+        args.query, alignments, args.max_invalid)
+    os.remove(alignments)
     print(f'{ident} nucleotide identity')
     print(f'{identN} nucleotide identity (excluding non-ACTG)')
     print(f'{nc} non-ACTG symbols out of {len_}')
