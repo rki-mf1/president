@@ -1,0 +1,33 @@
+stages:
+  - build
+  - test
+
+
+build-test-image:
+  image: docker:latest
+  stage: build
+  services:
+    - name: docker:dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    # See https://github.com/docker-library/docker/pull/166
+    DOCKER_TLS_CERTDIR: ""
+    IMAGE_TAG: $CI_REGISTRY/rkibioinformaticspipelines/president/testimage:latest
+    DOCKERFILE: Dockerfiles/testimage/Dockerfile
+  script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - docker build -t $IMAGE_TAG --file $DOCKERFILE .
+    - docker push $IMAGE_TAG
+  only:
+    changes:
+      - Dockerfiles/testimage/Dockerfile
+
+
+test-functions:
+  image: $CI_REGISTRY/rkibioinformaticspipelines/president/testimage:latest
+  stage: test
+  script:
+    - pytest
