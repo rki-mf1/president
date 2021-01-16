@@ -5,6 +5,31 @@ import subprocess
 import pandas as pd
 
 
+def remove_spaces(fasta):
+    """Remove white spaces from IDs in a FASTA file.
+
+    Parameters
+    ----------
+    fasta : str
+        FASTA file to remove white spaces.
+
+    Returns
+    -------
+    processed FASTA file.
+
+    """
+    _, output = tempfile.mkstemp()
+    with open(output, "w") as fout:
+        with open(fasta, "r") as fin:
+            for line in fin:
+                line = line.strip()
+                if line[0] == '>':
+                    fout.write(line.replace(" ", "%space%") + "\n")
+                else:
+                    fout.write(line + "\n")
+    return output
+
+
 def pblat(threads, reference, query, verbose=0):
     """Perform blat alignment.
 
