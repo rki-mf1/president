@@ -84,14 +84,20 @@ def main():  # pragma: no cover
     assert os.path.isfile(args.reference)
     assert os.path.isfile(args.query)
 
+    # remove white spaces from fasta files
+    reference = alignment.remove_spaces(args.reference)
+    query = alignment.remove_spaces(args.query)
+
     # perform alignment with pblat
-    alignment_file = alignment.pblat(args.threads, args.reference, args.query)
+    alignment_file = alignment.pblat(args.threads, reference, query)
 
     # parse statistics from file
     metrics = statistics.nucleotide_identity(args.query, alignment_file, args.max_invalid)
 
-    # remove temporary result file
+    # remove temporary files
     os.remove(alignment_file)
+    os.remove(reference)
+    os.remove(query)
     metrics.to_csv(args.output, index=False, sep='\t')
 
 

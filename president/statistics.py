@@ -41,30 +41,41 @@ def nucleotide_identity(query, alignment_file, max_invalid):
     identities = np.zeros(n_seqs)
     ambiguous_identities = np.zeros(n_seqs)
     query_lengths = np.zeros(n_seqs, dtype=np.uint32)
+    queries = {}
 
     with screed.open(query) as seqfile:
-        for idx, qry in enumerate(seqfile):
-            # basic sequence info
-            query_ids[idx] = qry.name
+        for qry in seqfile:
+            queries[qry.name.replace(" ", "_")] = qry.sequence
 
-            # Consider only sites where the query has non-ACTG characters
-            # Metric issue #2 (B)
-            ambiguous_bases[idx] = sum([1 for i in qry.sequence if i not in 'ACTG'])
+    for idx in range(alignments.shape[0]):
+        # basic sequence info
+        query_ids[idx] = alignments.at[idx, 'QName']
 
-            # Metric valid_sequences #2 (A)
-            # Ns in the query count as mismatch
-            identities[idx] = \
-                alignments.at[idx, 'Matches'] / \
-                max(alignments.at[idx, 'QSize'],
-                    alignments.at[idx, 'TSize'])
+        # Consider only sites where the query has non-ACTG characters
+        # Metric issue #2 (B)
+        qry = queries[query_ids[idx]]
+        ambiguous_bases[idx] = sum([1 for i in qry if i not in 'ACTG'])
 
-            # Ns in the query don't count
-            ambiguous_identities[idx] = \
-                alignments.at[idx, 'Matches'] / \
-                (max(alignments.at[idx, 'QSize'],
-                     alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
+        # Metric valid_sequences #2 (A)
+        # Ns in the query count as mismatch
+        identities[idx] = \
+            alignments.at[idx, 'Matches'] / \
+            max(alignments.at[idx, 'QSize'],
+                alignments.at[idx, 'TSize'])
 
-            query_lengths[idx] = len(qry.sequence)
+        # Ns in the query don't count
+        ambiguous_identities[idx] = \
+            alignments.at[idx, 'Matches'] / \
+            (max(alignments.at[idx, 'QSize'],
+                 alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
+
+        query_lengths[idx] = len(qry)
+
+        del queries[query_ids[idx]]
+
+    # prints sequences that could not be aligned with pblat
+    for key in queries.keys():
+        print(key, 'sequence could not be aligned with pblat')
 
     # format to single result dataframe
     metrics = pd.DataFrame({
