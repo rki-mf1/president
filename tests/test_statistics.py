@@ -23,7 +23,7 @@ def test_statistics():
     exp_ambig_identity = 0.95
     exp_ambig_bases = 0
     exp_length_query = 100
-    exp_valid = False
+    exp_valid = True
 
     assert exp_ident == metrics["Identity"].iloc[0]
     assert exp_valid == metrics["Valid"].iloc[0]
@@ -40,7 +40,7 @@ def test_multi_statistics():
     metrics = metrics.sort_values(by="ID")
 
     # sorting gives first the one without Ns
-    exp_invalid = [False, True]
+    exp_invalid = [True, False]
     exp_ident = [0.95, 0.9]
     # 100 - 10 mismatches = 90; 100 - 5 Ns = 95 --> non-canocical
     exp_ambig_identity = np.round([0.95, 90 / 95], 4)

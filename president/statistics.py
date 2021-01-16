@@ -53,18 +53,23 @@ def nucleotide_identity(query, alignment_file, max_invalid):
 
             # Metric valid_sequences #2 (A)
             # Ns in the query count as mismatch
-            identities[idx] = alignments.at[idx, 'Matches'] / len(qry.sequence)
+            identities[idx] = \
+                alignments.at[idx, 'Matches'] / \
+                max(alignments.at[idx, 'QSize'],
+                    alignments.at[idx, 'TSize'])
 
             # Ns in the query don't count
             ambiguous_identities[idx] = \
-                alignments.at[idx, 'Matches'] / (len(qry.sequence) - ambiguous_bases[idx])
+                alignments.at[idx, 'Matches'] / \
+                (max(alignments.at[idx, 'QSize'],
+                     alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
 
             query_lengths[idx] = len(qry.sequence)
 
     # format to single result dataframe
     metrics = pd.DataFrame({
         'ID': query_ids,
-        'Valid': ambiguous_bases > max_invalid,
+        'Valid': ambiguous_bases < max_invalid,
         'Identity': identities,
         'Ambiguous Identity': ambiguous_identities,
         'Ambiguous Bases': ambiguous_bases,
