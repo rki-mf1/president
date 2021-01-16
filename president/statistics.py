@@ -53,25 +53,29 @@ def nucleotide_identity(query, alignment_file, max_invalid):
 
         # Consider only sites where the query has non-ACTG characters
         # Metric issue #2 (B)
-        qry = queries[query_ids[idx]]
-        ambiguous_bases[idx] = sum([1 for i in qry if i not in 'ACTG'])
+        if query_ids[idx] in queries:
+            qry = queries[query_ids[idx]]
+            ambiguous_bases[idx] = sum([1 for i in qry if i not in 'ACTG'])
 
-        # Metric valid_sequences #2 (A)
-        # Ns in the query count as mismatch
-        identities[idx] = \
-            alignments.at[idx, 'Matches'] / \
-            max(alignments.at[idx, 'QSize'],
-                alignments.at[idx, 'TSize'])
+            # Metric valid_sequences #2 (A)
+            # Ns in the query count as mismatch
+            identities[idx] = \
+                alignments.at[idx, 'Matches'] / \
+                max(alignments.at[idx, 'QSize'],
+                    alignments.at[idx, 'TSize'])
 
-        # Ns in the query don't count
-        ambiguous_identities[idx] = \
-            alignments.at[idx, 'Matches'] / \
-            (max(alignments.at[idx, 'QSize'],
-                 alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
+            # Ns in the query don't count
+            ambiguous_identities[idx] = \
+                alignments.at[idx, 'Matches'] / \
+                (max(alignments.at[idx, 'QSize'],
+                     alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
 
-        query_lengths[idx] = len(qry)
+            query_lengths[idx] = len(qry)
 
-        del queries[query_ids[idx]]
+            del queries[query_ids[idx]]
+
+        else:
+            print(query_ids[idx], 'did not match from pblat to the FASTA file')
 
     # prints sequences that could not be aligned with pblat
     for key in queries.keys():
