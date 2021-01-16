@@ -24,7 +24,7 @@ def remove_spaces(fasta):
             for line in fin:
                 line = line.strip()
                 if line[0] == '>':
-                    fout.write(line.replace(" ", "_") + "\n")
+                    fout.write(line.replace(" ", "%space%") + "\n")
                 else:
                     fout.write(line + "\n")
     return output

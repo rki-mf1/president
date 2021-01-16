@@ -92,7 +92,7 @@ def main():  # pragma: no cover
     alignment_file = alignment.pblat(args.threads, reference, query)
 
     # parse statistics from file
-    metrics = statistics.nucleotide_identity(args.query, alignment_file, args.max_invalid)
+    metrics = statistics.nucleotide_identity(query, alignment_file, args.max_invalid)
 
     # remove temporary files
     os.remove(alignment_file)

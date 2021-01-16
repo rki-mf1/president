@@ -45,16 +45,16 @@ def nucleotide_identity(query, alignment_file, max_invalid):
 
     with screed.open(query) as seqfile:
         for qry in seqfile:
-            queries[qry.name.replace(" ", "_")] = qry.sequence
+            queries[qry.name] = qry.sequence
 
     for idx in range(alignments.shape[0]):
         # basic sequence info
-        query_ids[idx] = alignments.at[idx, 'QName']
+        query_ids[idx] = alignments.at[idx, 'QName'].replace("%space%", " ")
 
         # Consider only sites where the query has non-ACTG characters
         # Metric issue #2 (B)
-        if query_ids[idx] in queries:
-            qry = queries[query_ids[idx]]
+        if alignments.at[idx, 'QName'] in queries:
+            qry = queries[alignments.at[idx, 'QName']]
             ambiguous_bases[idx] = sum([1 for i in qry if i not in 'ACTG'])
 
             # Metric valid_sequences #2 (A)
@@ -72,7 +72,7 @@ def nucleotide_identity(query, alignment_file, max_invalid):
 
             query_lengths[idx] = len(qry)
 
-            del queries[query_ids[idx]]
+            del queries[alignments.at[idx, 'QName']]
 
         else:
             print(query_ids[idx], 'did not match from pblat to the FASTA file')
