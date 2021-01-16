@@ -12,7 +12,7 @@ from president import statistics
 
 fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
 
-"""
+
 def test_statistics():
     alignment_f = os.path.join(fixtures_loc, "100bp_pblat_results.txt")
     query = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
@@ -54,7 +54,7 @@ def test_multi_statistics():
     assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
     assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
     assert np.all(exp_length_query == metrics["Query Length"].values)
-"""
+
 
 def test_unmapped():
     alignment_f = os.path.join(fixtures_loc, "test_unmapped.tsv")
@@ -73,11 +73,9 @@ def test_unmapped():
                "FAO96286_barcode33/ARTIC/medaka_MN908947.3",
                "FAO96286_barcode44/ARTIC/medaka_MN908947.3"]
 
-    print(exp_IDS)
-#    print(metrics["ID"])
-#    assert np.all(exp_IDS == metrics["ID"])
-#    assert np.all(exp_ident == metrics["Identity"].values)
-#    assert np.all(exp_invalid == metrics["Valid"].values)
-#    assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
-#    assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
-#    assert np.all(exp_length_query == metrics["Query Length"].values)
+    assert np.all(exp_IDS == metrics["ID"])
+    assert np.all(exp_ident == metrics["Identity"].values)
+    assert np.all(exp_invalid == metrics["Valid"].values)
+    assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
+    assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
+    assert np.all(exp_length_query == metrics["Query Length"].values)
