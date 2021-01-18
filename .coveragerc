@@ -1,0 +1,3 @@
+[run]
+omit =
+    president/_version.py
