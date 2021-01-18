@@ -41,45 +41,43 @@ def nucleotide_identity(query, alignment_file, max_invalid):
     identities = np.zeros(n_seqs)
     ambiguous_identities = np.zeros(n_seqs)
     query_lengths = np.zeros(n_seqs, dtype=np.uint32)
-    queries = {}
 
     with screed.open(query) as seqfile:
+        idx = 0
         for qry in seqfile:
-            queries[qry.name] = qry.sequence
+            # increase idx if pblat print multiple alignments
+            # since the first one is the best match anyway
+            while idx > 0 and idx < alignments.shape[0] and \
+                    alignments.at[idx, 'QName'] == alignments.at[idx - 1, 'QName']:
+                query_ids[idx] = np.nan
+                idx = idx + 1
+            if qry.name.startswith(alignments.at[idx, 'QName']):
+                # basic sequence info
+                query_ids[idx] = qry.name.replace("%space%", " ")
 
-    for idx in range(alignments.shape[0]):
-        # basic sequence info
-        query_ids[idx] = alignments.at[idx, 'QName'].replace("%space%", " ")
+                # Consider only sites where the query has non-ACTG characters
+                # Metric issue #2 (B)
+                ambiguous_bases[idx] = sum([1 for i in qry.sequence if i not in 'ACTG'])
 
-        # Consider only sites where the query has non-ACTG characters
-        # Metric issue #2 (B)
-        if alignments.at[idx, 'QName'] in queries:
-            qry = queries[alignments.at[idx, 'QName']]
-            ambiguous_bases[idx] = sum([1 for i in qry if i not in 'ACTG'])
+                # Metric valid_sequences #2 (A)
+                # Ns in the query count as mismatch
+                identities[idx] = \
+                    alignments.at[idx, 'Matches'] / \
+                    max(alignments.at[idx, 'QSize'],
+                        alignments.at[idx, 'TSize'])
 
-            # Metric valid_sequences #2 (A)
-            # Ns in the query count as mismatch
-            identities[idx] = \
-                alignments.at[idx, 'Matches'] / \
-                max(alignments.at[idx, 'QSize'],
-                    alignments.at[idx, 'TSize'])
+                # Ns in the query don't count
+                ambiguous_identities[idx] = \
+                    alignments.at[idx, 'Matches'] / \
+                    (max(alignments.at[idx, 'QSize'],
+                         alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
 
-            # Ns in the query don't count
-            ambiguous_identities[idx] = \
-                alignments.at[idx, 'Matches'] / \
-                (max(alignments.at[idx, 'QSize'],
-                     alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
+                query_lengths[idx] = len(qry.sequence)
 
-            query_lengths[idx] = len(qry)
+                idx = idx + 1
 
-            del queries[alignments.at[idx, 'QName']]
-
-        else:
-            print(query_ids[idx], 'did not match from pblat to the FASTA file')
-
-    # prints sequences that could not be aligned with pblat
-    for key in queries.keys():
-        print(key, 'sequence could not be aligned with pblat')
+            else:
+                print(qry.name.replace("%space%", " "), 'could not be aligned with pblat')
 
     # format to single result dataframe
     metrics = pd.DataFrame({
@@ -92,5 +90,7 @@ def nucleotide_identity(query, alignment_file, max_invalid):
     })
     # sort by invalid sequences first
     metrics = metrics.sort_values(by="Valid")
+    # drop 2nd, 3rd best alignment rows for the input sequences
+    metrics = metrics.dropna(subset=['ID'])
     metrics = metrics.round(4)
     return metrics
