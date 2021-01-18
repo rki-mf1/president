@@ -81,7 +81,7 @@ def main():  # pragma: no cover
     parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use')
     parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report')
     parser.add_argument(
-        '--version', action='version',
+        '-v', '--version', action='version',
         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
