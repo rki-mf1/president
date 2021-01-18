@@ -43,6 +43,7 @@ from president import statistics
 
 from president import __version__
 
+
 def is_available(name="pblat"):
     """
     Check whether `name` is on PATH and marked as executable.
@@ -79,8 +80,9 @@ def main():  # pragma: no cover
                         help='Maximum number of non-ACTG positions allowed in query')
     parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use')
     parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report')
-    parser.add_argument('--version', action='version',
-                    version='%(prog)s {version}'.format(version=__version__))
+    parser.add_argument(
+        '--version', action='version',
+        version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     # Files exist?

@@ -53,7 +53,7 @@ except FileNotFoundError:
 about = {}
 # project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
 project_slug = "president"
-#with open(os.path.join(here, project_slug, '_version.py')) as f:
+# with open(os.path.join(here, project_slug, '_version.py')) as f:
 #    exec(f.read(), about)
 
 
@@ -134,8 +134,8 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
-    # $ setup.py publish support.
+)
+#    # $ setup.py publish support.
 #    cmdclass={
 #        'upload': UploadCommand,
 #    },
-)
