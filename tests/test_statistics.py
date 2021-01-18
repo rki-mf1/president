@@ -8,6 +8,8 @@ Created on Fri Jan 15 10:15:48 2021
 import os
 import numpy as np
 
+import pytest
+
 from president import statistics
 
 fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
@@ -79,3 +81,49 @@ def test_unmapped():
     assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
     assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
     assert np.all(exp_length_query == metrics["Query Length"].values)
+
+
+def test_split_valid_sequences():
+    reference = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
+    query = os.path.join(fixtures_loc, "100bp_5N_05MM_sample_query_multi.fasta")
+
+    # all good
+    outfile1, case1, ids1 = statistics.split_valid_sequences(query, reference, id_threshold=0.0)
+
+    # all invalid
+    outfile2, case2, ids2 = statistics.split_valid_sequences(query, reference, id_threshold=1)
+
+    # mixed
+    outfile3, case3, ids3 = statistics.split_valid_sequences(query, reference, id_threshold=0.95)
+
+    assert outfile1 == query
+    assert case1 == "all_valid"
+    assert ids1 == []
+
+    assert outfile2 == query+"_invalid.fasta"
+    assert case2 == "all_invalid"
+    assert ids2 == ['100bp_5N_5MM_reference', '100bp_10N_5MM_reference']
+
+    assert outfile3 == query+"_valid.fasta"
+    assert case3 == "mixed"
+    assert ids3 == ['100bp_10N_5MM_reference']
+
+
+def test_number_reference_check_fail():
+    reference = os.path.join(fixtures_loc, "100bp_multi.fasta")
+
+    with pytest.raises(ValueError):
+        statistics.count_reference_sequences(reference)
+
+
+def test_number_reference_check_pass():
+    reference = os.path.join(fixtures_loc, "100bp_0N_sample_reference.fasta")
+    statistics.count_reference_sequences(reference)
+    assert True
+
+
+def test_estimate_max_invalid():
+    reference = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
+    exp_maxinvalid = 5
+    maxinvalid = statistics.estimate_max_invalid(reference, id_threshold=0.95)
+    assert exp_maxinvalid == maxinvalid
