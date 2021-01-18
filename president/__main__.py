@@ -76,7 +76,7 @@ def main():  # pragma: no cover
     parser.add_argument('-r', '--reference', required=True, help='Reference genome.')
     parser.add_argument('-q', '--query', required=True, help='Query genome.')
     parser.add_argument('-x', '--id_threshold', type=float, default=0.93,
-                        help='Maximum non-ACTG positions allowed in query (percentage) (def: 0.93)')
+                        help='ACGT nucleotide identity threshold after alignment (percentage). A query sequence is reported as valid based on this threshold (def: 0.93)')
     parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use.')
     parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report.')
     args = parser.parse_args()
