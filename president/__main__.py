@@ -38,6 +38,7 @@ import argparse
 from shutil import which
 
 import pandas as pd
+import screed
 
 from president import alignment
 from president import statistics
@@ -90,7 +91,6 @@ def main():  # pragma: no cover
     # remove white spaces from fasta files
     reference = alignment.remove_spaces(args.reference)
     query = alignment.remove_spaces(args.query)
-    max_invalid = statistics.estimate_max_invalid(reference, args.id_threshold)
 
     # check reference fasta
     statistics.count_reference_sequences(reference)
@@ -107,25 +107,35 @@ def main():  # pragma: no cover
         print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
     # perform alignment with pblat
+    print(reference)
+    print(query)
     alignment_file = alignment.pblat(args.threads, reference, query)
 
     # parse statistics from file
-    metrics = statistics.nucleotide_identity(query, alignment_file, max_invalid)
-    metrics["passed_qc"] = True
+    metrics = statistics.nucleotide_identity(query, alignment_file, args.id_threshold)
+    # TODO: needs work in the nucleotide_identity function, e.g. see if all remaining valid
+    # sequences got aligned
+    metrics["passed_initial_qc"] = True
     metrics["aligned"] = True
+
+    with screed.open(reference) as seqfile:
+        refseq = [i for i in seqfile][0]
 
     # add invalid
     if len(invalid_ids) > 0:
         invalid_df = pd.DataFrame({"ID": invalid_ids})
-        invalid_df["passed_qc"] = False
+        invalid_df["passed_initial_qc"] = False
         invalid_df["aligned"] = False
         metrics = pd.concat([metrics, invalid_df])
 
+    # store reference data
+    metrics["reference_length"] = len(refseq.sequence)
     # remove temporary files
     os.remove(alignment_file)
     os.remove(reference)
     os.remove(query)
     metrics.to_csv(args.output, index=False, sep='\t')
+    print(metrics)
 
 
 if __name__ == "__main__":

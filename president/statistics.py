@@ -6,7 +6,7 @@ import screed
 from president import alignment
 
 
-def nucleotide_identity(query, alignment_file, max_invalid):
+def nucleotide_identity(query, alignment_file, id_threshold=0.93):
     """Calculate nucleotide ident from a 2-sequence MSA.
 
     The query can consists of a multi-fasta file.
@@ -19,8 +19,8 @@ def nucleotide_identity(query, alignment_file, max_invalid):
     alignment_file : str
         alignment FASTA location.
 
-    max_invalid : int
-        maximal invalid entries in alignment.
+    id_threshold : float
+       minimal id threshold to pass
 
     Raises
     ------
@@ -85,7 +85,7 @@ def nucleotide_identity(query, alignment_file, max_invalid):
     # format to single result dataframe
     metrics = pd.DataFrame({
         'ID': query_ids,
-        'Valid': ambiguous_bases < max_invalid,
+        'Valid': identities >= id_threshold,
         'Identity': identities,
         'Ambiguous Identity': ambiguous_identities,
         'Ambiguous Bases': ambiguous_bases,
@@ -116,7 +116,7 @@ def estimate_max_invalid(reference, id_threshold=0.93):
     # read reference file
     with screed.open(reference) as seqfile:
         length_ref = [len(i.sequence) for i in seqfile][0]
-    return length_ref - np.floor(id_threshold * length_ref)
+    return length_ref - np.ceil(id_threshold * length_ref)
 
 
 def count_reference_sequences(reference):
@@ -176,7 +176,7 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
 
     # compute if N/length threshold is reached
     # round, generously to avoid border line cases
-    valid_Ns = np.round((length_ref - Ns_queries) / length_ref + 0.005, 2) >= id_threshold
+    valid_Ns = ((length_ref - Ns_queries) / length_ref) >= id_threshold
 
     # take the lower bound here (floor)
     valid_lengths = length_queries >= np.floor(length_ref * id_threshold)
@@ -195,8 +195,10 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
 
     else:
         valid_sequences = [queries[idx] for idx, cond in enumerate(all_valid) if cond]
-        ivalid_sequences = [queries[idx] for idx, cond in enumerate(all_valid) if not cond]
-        ivalid_identifier = [queries[idx].name for idx, cond in enumerate(all_valid) if not cond]
+        invalid_sequences = [queries[idx] for idx, cond in enumerate(all_valid) if not cond]
+        invalid_identifier = [
+            queries[idx].name.replace("%space%", " ")
+            for idx, cond in enumerate(all_valid) if not cond]
 
         # write valid sequences only
         valid_loc = query+"_valid.fasta"
@@ -207,8 +209,8 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
 
         # write valid sequences only
         with open(query+"_invalid.fasta", "w") as fout:
-            for vseq in ivalid_sequences:
+            for vseq in invalid_sequences:
                 fout.write(f">{vseq['name']} {vseq['description']}\n")
                 fout.write(f"{vseq['sequence']}\n")
 
-        return valid_loc, "mixed", ivalid_identifier
+        return valid_loc, "mixed", invalid_identifier

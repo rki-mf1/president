@@ -19,7 +19,7 @@ def test_statistics():
     alignment_f = os.path.join(fixtures_loc, "100bp_pblat_results.txt")
     query = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
 
-    metrics = statistics.nucleotide_identity(query, alignment_f, max_invalid=3000)
+    metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.93)
 
     exp_ident = 0.95
     exp_ambig_identity = 0.95
@@ -38,7 +38,7 @@ def test_multi_statistics():
     alignment_f = os.path.join(fixtures_loc, "100pb_pblat_results_multi.txt")
     query = os.path.join(fixtures_loc, "100bp_multi.fasta")
 
-    metrics = statistics.nucleotide_identity(query, alignment_f, max_invalid=4)
+    metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.91)
     metrics = metrics.sort_values(by="ID")
 
     # sorting gives first the one without Ns
@@ -62,7 +62,7 @@ def test_unmapped():
     alignment_f = os.path.join(fixtures_loc, "test_unmapped.tsv")
     query = os.path.join(fixtures_loc, "test_unmapped.fasta")
 
-    metrics = statistics.nucleotide_identity(query, alignment_f, max_invalid=3000)
+    metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.93)
 
     exp_invalid = [False, True, True, True, True]
     exp_ident = [0.4063, 0.9953, 0.9952, 0.9947, 0.9796]
@@ -109,6 +109,22 @@ def test_split_valid_sequences():
     assert ids3 == ['100bp_10N_5MM_reference']
 
 
+def test_split_valid_sequences_uneven():
+    reference = os.path.join(fixtures_loc, "101bp_5N_5MM_5G_ref.fasta")
+    query = os.path.join(fixtures_loc, "101bp_5N_5MM_5G_query_3seqs.fasta")
+
+    # mixed
+    # 0.93 * 101 = 93.93
+    # 0.94 * 101 = 94.94
+    # 0.95 * 101 = 95.949
+    # we have 101 - 5 = 96 = 96 / 101 = 0.95
+    outfile1, case1, ids1 = statistics.split_valid_sequences(query, reference, id_threshold=0.95)
+    outfile2, case2, ids2 = statistics.split_valid_sequences(query, reference, id_threshold=0.96)
+
+    assert case1 == "all_valid"
+    assert case2 == "mixed"
+
+
 def test_number_reference_check_fail():
     reference = os.path.join(fixtures_loc, "100bp_multi.fasta")
 
@@ -122,8 +138,16 @@ def test_number_reference_check_pass():
     assert True
 
 
-def test_estimate_max_invalid():
+def test_estimate_max_invalid_even():
     reference = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
     exp_maxinvalid = 5
+    maxinvalid = statistics.estimate_max_invalid(reference, id_threshold=0.95)
+    assert exp_maxinvalid == maxinvalid
+
+
+def test_estimate_max_invalid_uneven():
+    reference = os.path.join(fixtures_loc, "101bp_5N_5MM_5G_ref.fasta")
+    # total - valid -> invalid
+    exp_maxinvalid = (101 - 96) * 1.0
     maxinvalid = statistics.estimate_max_invalid(reference, id_threshold=0.95)
     assert exp_maxinvalid == maxinvalid
