@@ -18,8 +18,8 @@ are considered identical to each other.
 To get president running follow the steps below:
 
 ```
-conda create -y -n president -c bioconda python=3.8 pblat
-conda activate president
+conda create -y -n president -c bioconda python=3.8 pblat && \
+conda activate president && \
 pip install pypresident
 ```
 

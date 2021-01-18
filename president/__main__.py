@@ -3,12 +3,12 @@
 Given a reference and a query sequence (which can be fragmented), calculate
 pairwise nucleotide identity with respect to the reference sequence.
 
-Usage:
+Usage
 -----
 president --query tiny_test.masked_consensus.fasta \
     --reference NC_045512.2.fasta -x 3000 -p 8 -o report.tsv
 
-Notes:
+Notes
 -----
 - nextstrain uses a quality threshold of < 3000 non-canonical nucleotides
 - Ns in the query are treated as mismatches, uncomment the corresponding line
@@ -22,7 +22,7 @@ ANI definition:
 
 - https://pubmed.ncbi.nlm.nih.gov/17220447/
 
-Spec:
+Spec
 -----
 > Sequence identity to a reference genome sequence (e.g. NC_045512.2) should
 be calculated at the nucleotide level relative to the entire length of the
@@ -53,9 +53,7 @@ def is_available(name="pblat"):
 
     Returns
     -------
-    TYPE
-        DESCRIPTION.
-
+    None
     """
     # tool installed
     if not which(name):

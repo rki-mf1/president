@@ -20,7 +20,7 @@ parts/
 sdist/
 var/
 wheels/
-utils/
+utils/*
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
@@ -128,3 +128,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+tests/fixtures/sequences_fasta_20210110-1917.fa

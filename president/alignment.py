@@ -70,7 +70,7 @@ def parse_alignment(alignment_file):
 
     Returns
     -------
-    None.
+    df, pblat parsed results
 
     """
     # Read the alignment(s) with pandas

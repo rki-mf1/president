@@ -5,6 +5,7 @@ pytest \
 pytest-cov \
 pytest-flake8 \
 pytest-pydocstyle \
+pytest-benchmark \
 pandas \
 screed \
 --quiet && \
