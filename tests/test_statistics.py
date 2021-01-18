@@ -67,11 +67,57 @@ def test_unmapped():
     exp_ambig_identity = [0.9991, 0.9994, 0.9993, 0.9989, 0.9993]
     exp_ambig_bases = [17742, 123, 121, 123, 590]
     exp_length_query = [29903, 29902, 29903, 29896, 29902]
-    exp_IDS = ["FAO96286_barcode67/ARTIC/medaka_MN908947.3",
-               "FAO96286_barcode07/ARTIC/medaka_MN908947.3",
-               "FAO96286_barcode21/ARTIC/medaka_MN908947.3",
-               "FAO96286_barcode33/ARTIC/medaka_MN908947.3",
-               "FAO96286_barcode44/ARTIC/medaka_MN908947.3"]
+    exp_IDS = ["FAO96286_barcode67/ARTIC/medaka MN908947.3",
+               "FAO96286_barcode07/ARTIC/medaka MN908947.3",
+               "FAO96286_barcode21/ARTIC/medaka MN908947.3",
+               "FAO96286_barcode33/ARTIC/medaka MN908947.3",
+               "FAO96286_barcode44/ARTIC/medaka MN908947.3"]
+
+    assert np.all(exp_IDS == metrics["ID"])
+    assert np.all(exp_ident == metrics["Identity"].values)
+    assert np.all(exp_invalid == metrics["Valid"].values)
+    assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
+    assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
+    assert np.all(exp_length_query == metrics["Query Length"].values)
+
+
+def test_global_identity():
+    alignment_f = os.path.join(fixtures_loc, "global_identity.tsv")
+    query = os.path.join(fixtures_loc, "global_identity.fasta")
+
+    metrics = statistics.nucleotide_identity(query, alignment_f, max_invalid=3000)
+
+    exp_invalid = [True]
+    exp_ident = [0.5]
+    exp_ambig_identity = [0.5]
+    exp_ambig_bases = [0]
+    exp_length_query = [50]
+    exp_IDS = ["query"]
+
+    assert np.all(exp_IDS == metrics["ID"])
+    assert np.all(exp_ident == metrics["Identity"].values)
+    assert np.all(exp_invalid == metrics["Valid"].values)
+    assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
+    assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
+    assert np.all(exp_length_query == metrics["Query Length"].values)
+
+
+def test_repeated_pblat():
+    alignment_f = os.path.join(fixtures_loc, "test_repeated_pblat.tsv")
+    query = os.path.join(fixtures_loc, "test_repeated_pblat.fasta")
+
+    metrics = statistics.nucleotide_identity(query, alignment_f, max_invalid=3000)
+
+    exp_invalid = [False, True, True, True, True]
+    exp_ident = [0.4063, 0.9953, 0.9952, 0.9947, 0.9796]
+    exp_ambig_identity = [0.9991, 0.9994, 0.9993, 0.9989, 0.9993]
+    exp_ambig_bases = [17742, 123, 121, 123, 590]
+    exp_length_query = [29903, 29902, 29903, 29896, 29902]
+    exp_IDS = ["FAO96286_barcode67/ARTIC/medaka MN908947.3",
+               "FAO96286_barcode07/ARTIC/medaka MN908947.3",
+               "FAO96286_barcode21/ARTIC/medaka MN908947.3",
+               "FAO96286_barcode33/ARTIC/medaka MN908947.3",
+               "FAO96286_barcode44/ARTIC/medaka MN908947.3"]
 
     assert np.all(exp_IDS == metrics["ID"])
     assert np.all(exp_ident == metrics["Identity"].values)
