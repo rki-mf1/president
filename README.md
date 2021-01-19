@@ -28,7 +28,7 @@ pypresident installs the package and the pairwise alignment can be run with
 the following console call:
 
 ```
-president --query NC_045512.2.20mis.fasta --reference NC_045512.2.fasta -x 3000 -p 8 -o report.tsv
+president --query NC_045512.2.20mis.fasta --reference NC_045512.2.fasta -x 0.93 -p 8 -o report.tsv
 ```
 
 #### Output:
