@@ -7,6 +7,7 @@
 import io
 import os
 import sys
+import versioneer
 from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
@@ -48,12 +49,12 @@ try:
 except FileNotFoundError:
     long_description = DESCRIPTION
 
-# Load the package's __version__.py module as a dictionary.
+# Load the package's _version.py module as a dictionary.
 about = {}
 # project_slug = NAME.lower().replace("-", "_").replace(" ", "_")
 project_slug = "president"
-with open(os.path.join(here, project_slug, '__version__.py')) as f:
-    exec(f.read(), about)
+# with open(os.path.join(here, project_slug, '_version.py')) as f:
+#    exec(f.read(), about)
 
 
 class UploadCommand(Command):
@@ -100,7 +101,8 @@ class UploadCommand(Command):
 # Where the magic happens:
 setup(
     name=NAME,
-    version=about['__version__'],
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description=DESCRIPTION,
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -132,8 +134,8 @@ setup(
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: Implementation :: PyPy'
     ],
-    # $ setup.py publish support.
-    cmdclass={
-        'upload': UploadCommand,
-    },
 )
+#    # $ setup.py publish support.
+#    cmdclass={
+#        'upload': UploadCommand,
+#    },
