@@ -29,21 +29,18 @@ be calculated at the nucleotide level relative to the entire length of the
 reference. Only informative nucleotides (A,T,G,C) are considered identical
 to each other.
 """
+import argparse
+import os
 # authors:
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
 import sys
-import os
-import argparse
 from shutil import which
 
 import pandas as pd
 import screed
 
-from president import alignment
-from president import statistics
-
-from president import __version__
+from president import alignment, __version__, statistics, writer
 
 
 def is_available(name="pblat"):
@@ -84,6 +81,8 @@ def main():  # pragma: no cover
                              '(def: 0.93)')
     parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use.')
     parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report.')
+    parser.add_argument('-d', '--outdir', required=False, default="",
+                        help='Output directory for FASTA sequences. (default: working dir).')
     parser.add_argument(
         '-v', '--version', action='version',
         version='%(prog)s {version}'.format(version=__version__))
@@ -92,6 +91,14 @@ def main():  # pragma: no cover
     # Files exist?
     assert os.path.isfile(args.reference)
     assert os.path.isfile(args.query)
+
+    # set out_dir
+    if args.outdir == "":
+        out_dir = os.getcwd()
+    else:
+        out_dir = os.path.abspath(args.outdir)
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
 
     # remove white spaces from fasta files
     reference = alignment.remove_spaces(args.reference)
@@ -127,6 +134,9 @@ def main():  # pragma: no cover
         invalid_df["passed_initial_qc"] = False
         invalid_df["aligned"] = False
         metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
+
+    # store sequences
+    writer.write_sequences(args.query, metrics, out_dir)
 
     # store reference data
     metrics["reference_length"] = len(refseq.sequence)
