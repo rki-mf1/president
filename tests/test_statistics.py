@@ -87,7 +87,7 @@ def test_global_identity():
     alignment_f = os.path.join(fixtures_loc, "global_identity.tsv")
     query = os.path.join(fixtures_loc, "global_identity.fasta")
 
-    metrics = statistics.nucleotide_identity(query, alignment_f, max_invalid=3000)
+    metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.5)
 
     exp_invalid = [True]
     exp_ident = [0.5]
@@ -108,7 +108,7 @@ def test_repeated_pblat():
     alignment_f = os.path.join(fixtures_loc, "test_repeated_pblat.tsv")
     query = os.path.join(fixtures_loc, "test_repeated_pblat.fasta")
 
-    metrics = statistics.nucleotide_identity(query, alignment_f, max_invalid=3000)
+    metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.93)
 
     exp_invalid = [False, True, True, True, True]
     exp_ident = [0.4063, 0.9953, 0.9952, 0.9947, 0.9796]
