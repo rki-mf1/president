@@ -42,6 +42,7 @@ import screed
 
 from president import alignment
 from president import statistics
+from president import sequence
 
 from president import __version__
 
@@ -94,8 +95,8 @@ def main():  # pragma: no cover
     assert os.path.isfile(args.query)
 
     # remove white spaces from fasta files
-    reference = alignment.remove_spaces(args.reference)
-    query = alignment.remove_spaces(args.query)
+    reference = sequence.preprocess(args.reference)
+    query = sequence.preprocess(args.query)
 
     # check reference fasta
     statistics.count_reference_sequences(reference)
