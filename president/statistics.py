@@ -1,4 +1,7 @@
 """Module to compute alignment statistics."""
+from collections import Counter
+import tempfile
+
 import pandas as pd
 import numpy as np
 import screed
@@ -38,23 +41,37 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
     n_seqs = alignments.shape[0]
 
     query_ids = np.empty(n_seqs, dtype="object")
+
     ambiguous_bases = np.zeros(n_seqs)
+    acgt_bases = np.zeros(n_seqs)
+    no_iupac_bases = np.zeros(n_seqs)
+
     identities = np.zeros(n_seqs)
     ambiguous_identities = np.zeros(n_seqs)
+    iupac_ambiguous_identities = np.zeros(n_seqs)
+
     query_lengths = np.zeros(n_seqs, dtype=np.uint32)
 
     with screed.open(query) as seqfile:
         idx = 0
         for qry in seqfile:
+            # nucleotide counts
+            acgts_ct, iupacs_ct, nonupac_ct = count_nucleotides(qry.sequence)
+
             # increase idx if pblat print multiple alignments
             # since the first one is the best match anyway
             while idx > 0 and idx < alignments.shape[0] and \
                     alignments.at[idx, 'QName'] == alignments.at[idx - 1, 'QName']:
                 query_ids[idx] = np.nan
                 idx = idx + 1
+
             if qry.name.startswith(alignments.at[idx, 'QName']):
                 # basic sequence info
                 query_ids[idx] = qry.name.replace("%space%", " ")
+
+                query_lengths[idx] = len(qry.sequence)
+                acgt_bases[idx] = acgts_ct
+                no_iupac_bases[idx] = iupacs_ct
 
                 # Consider only sites where the query has non-ACTG characters
                 # Metric issue #2 (B)
@@ -68,13 +85,18 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
                         alignments.at[idx, 'TSize'])
 
                 # Ns in the query don't count
+                # q=query, t=target sequence length
                 ambiguous_identities[idx] = \
                     alignments.at[idx, 'Matches'] / \
                     (max(alignments.at[idx, 'QSize'],
                          alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
 
-                query_lengths[idx] = len(qry.sequence)
-
+                # Ns in the query don't count
+                # q=query, t=target sequence length
+                iupac_ambiguous_identities[idx] = \
+                    alignments.at[idx, 'Matches'] / \
+                    (max(alignments.at[idx, 'QSize'],
+                         alignments.at[idx, 'TSize']) - ambiguous_bases[idx] - no_iupac_bases[idx])
                 idx = idx + 1
 
             else:
@@ -86,8 +108,12 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
         'Valid': identities >= id_threshold,
         'Identity': identities,
         'Ambiguous Identity': ambiguous_identities,
+        'Ambiguous IUPAC Identity': iupac_ambiguous_identities,
         'Ambiguous Bases': ambiguous_bases,
-        'Query Length': query_lengths
+        'Query Length': query_lengths,
+        'Query #ACGT': acgt_bases,
+        'Query #IUPAC-ACGT': no_iupac_bases,
+        'Query #non-IUPAC:': query_lengths - no_iupac_bases - acgt_bases
     })
     # sort by invalid sequences first
     metrics = metrics.sort_values(by="Valid")
@@ -174,6 +200,10 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
     Ns_queries = np.array([i.sequence.count("N") for i in queries])
     length_queries = np.array([len(i.sequence) for i in queries])
 
+    # get number of invalid sequences, and create indicator
+    valid_nucleotides = np.array([count_nucleotides(seq.sequence)[2] for seq in queries])
+    valid_nucleotides = (valid_nucleotides == 0)
+
     # compute if N/length threshold is reached
     # round, generously to avoid border line cases
     valid_Ns = ((length_ref - Ns_queries) / length_ref) >= id_threshold
@@ -182,18 +212,21 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
     valid_lengths = length_queries >= np.floor(length_ref * id_threshold)
 
     # concat conditions
-    all_valid = valid_Ns & valid_lengths
+    # only if all conditions true, align
+    all_valid = valid_Ns & valid_lengths & valid_nucleotides
 
     if all_valid.sum() == len(Ns_queries):
         # all good, all sequences pass qc
         return query, "all_valid", []
 
     elif all_valid.sum() == 0:
-        # all good, all sequences pass qc
-        return query+"_invalid.fasta", "all_invalid", \
+        # all bad, none of the sequences pass the qc
+        invalid_loc = tempfile.mkstemp(suffix="_valid.fasta")[1]
+        return invalid_loc, "all_invalid", \
             [queries[idx].name for idx, cond in enumerate(all_valid) if not cond]
 
     else:
+        # some sequences pass qc, others not
         valid_sequences = [queries[idx] for idx, cond in enumerate(all_valid) if cond]
         invalid_sequences = [queries[idx] for idx, cond in enumerate(all_valid) if not cond]
         invalid_identifier = [
@@ -201,16 +234,68 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
             for idx, cond in enumerate(all_valid) if not cond]
 
         # write valid sequences only
-        valid_loc = query+"_valid.fasta"
+        valid_loc = tempfile.mkstemp(suffix="_valid.fasta")[1]
         with open(valid_loc, "w") as fout:
             for vseq in valid_sequences:
                 fout.write(f">{vseq['name']} {vseq['description']}\n")
                 fout.write(f"{vseq['sequence']}\n")
 
-        # write valid sequences only
-        with open(query+"_invalid.fasta", "w") as fout:
+        invalid_loc = tempfile.mkstemp(suffix="_invalid.fasta")[1]
+        # write invalid sequences only
+        with open(invalid_loc, "w") as fout:
             for vseq in invalid_sequences:
                 fout.write(f">{vseq['name']} {vseq['description']}\n")
                 fout.write(f"{vseq['sequence']}\n")
 
         return valid_loc, "mixed", invalid_identifier
+
+
+def init_UPAC_dictionary(acgt=False):
+    """
+    Generate a count template dictionary for IUPAC characters excluding ACGT.
+
+    Definitions taken from here: https://www.bioinformatics.org/sms/iupac.html.
+    However, "-", "."
+
+    Parameters
+    ----------
+    acgt : bool, optional
+        If True include ACGT in the dictionary. The default is False.
+
+    Returns
+    -------
+    dict
+        IUPAC (char:0) dictionary.
+
+    """
+    if acgt:
+        return {i: 0 for i in "ACGTURYSWKMBDHVN."}
+    else:
+        return {i: 0 for i in "URYSWKMBDHVN."}
+
+
+def count_nucleotides(sequence):
+    """
+    Compute IUPAC nucleotide statistics and return counts.
+
+    Parameters
+    ----------
+    sequence : str
+        sequence string.
+
+    Returns
+    -------
+    triple,
+        acgt counts, iupac counts, non-iupac counts
+    """
+    # init count dict
+    iupac_dic = init_UPAC_dictionary(acgt=True)
+    # count nucleotides
+    iupac_dic.update(Counter(sequence))
+
+    # ref characters
+    valid_nucleotides = init_UPAC_dictionary(acgt=False)
+
+    acgt_counts = sum([iupac_dic[nt] for nt in "ACGT"])
+    iupac_counts = sum([iupac_dic[nt] for nt in iupac_dic.keys() if nt in valid_nucleotides])
+    return acgt_counts, iupac_counts, len(sequence) - acgt_counts - iupac_counts
