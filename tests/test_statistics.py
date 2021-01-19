@@ -8,8 +8,8 @@ Created on Fri Jan 15 10:15:48 2021
 import os
 import numpy as np
 
+import screed
 import pytest
-
 from president import statistics, alignment
 
 fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
@@ -143,15 +143,12 @@ def test_split_valid_sequences():
     # mixed
     outfile3, case3, ids3 = statistics.split_valid_sequences(query, reference, id_threshold=0.95)
 
-    assert outfile1 == query
     assert case1 == "all_valid"
     assert ids1 == []
 
-    assert outfile2 == query+"_invalid.fasta"
     assert case2 == "all_invalid"
     assert ids2 == ['100bp_5N_5MM_reference', '100bp_10N_5MM_reference']
 
-    assert outfile3 == query+"_valid.fasta"
     assert case3 == "mixed"
     assert ids3 == ['100bp_10N_5MM_reference']
 
@@ -198,6 +195,33 @@ def test_estimate_max_invalid_uneven():
     exp_maxinvalid = (101 - 96) * 1.0
     maxinvalid = statistics.estimate_max_invalid(reference, id_threshold=0.95)
     assert exp_maxinvalid == maxinvalid
+
+
+def test_init_UPAC_dictionary():
+    iupac_dict = statistics.init_UPAC_dictionary()
+    iupac_dict_acgt = statistics.init_UPAC_dictionary(acgt=True)
+
+    assert "A" not in iupac_dict
+    assert "C" not in iupac_dict
+    assert "T" not in iupac_dict
+    assert "G" not in iupac_dict
+
+    assert "A" in iupac_dict_acgt
+    assert "C" in iupac_dict_acgt
+    assert "T" in iupac_dict_acgt
+    assert "G" in iupac_dict_acgt
+
+
+def test_nucleotide_counts():
+    query = os.path.join(fixtures_loc, "test_UPAC_statistics.fasta")
+    with screed.open(query) as seqfile:
+        results = [statistics.count_nucleotides(seq.sequence) for seq in seqfile]
+    exp_tuple = [(0, 0, 60),  # only X
+                 (4, 1, 0),  # ACGT + N
+                 (96, 1, 0),  # ACGT.... + "."]
+                 (4, 11, 3),  # ACGT + "RYSWKMBDHVN" + ?!-]
+                 (96, 0, 1)]  # ACGT.... + "-"]
+    assert exp_tuple == results
 
 
 def test_not_aligned():

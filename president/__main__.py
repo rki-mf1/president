@@ -32,7 +32,7 @@ to each other.
 # authors:
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
-
+import sys
 import os
 import argparse
 from shutil import which
@@ -103,18 +103,17 @@ def main():  # pragma: no cover
     # perform initial sequence check
     query, evaluation, invalid_ids = \
         statistics.split_valid_sequences(query, reference, id_threshold=args.id_threshold)
-
     # if none of the sequences pass the qc filter, exit.
     # else just perform the alignment witht he seqs passing qc
     if evaluation == "all_invalid":
-        assert "None of the sequences can pass the identity threshold. No alignment done."
+        print("None of the sequences can pass the identity threshold. No alignment done.")
+        print("Exiting president alignment.")
+        sys.exit()
     else:
         print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
     # perform alignment with pblat
-    print(reference)
-    print(query)
-    alignment_file = alignment.pblat(args.threads, reference, query)
+    alignment_file = alignment.pblat(args.threads, reference, query, verbose=1)
 
     # parse statistics from file
     metrics = statistics.nucleotide_identity(query, alignment_file, args.id_threshold)
@@ -131,6 +130,8 @@ def main():  # pragma: no cover
 
     # store reference data
     metrics["reference_length"] = len(refseq.sequence)
+    metrics["reference"] = os.path.basename(args.reference)
+    metrics["query"] = os.path.basename(args.query)
     # remove temporary files
     os.remove(alignment_file)
     os.remove(reference)
