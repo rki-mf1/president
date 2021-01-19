@@ -28,7 +28,7 @@ pypresident installs the package and the pairwise alignment can be run with
 the following console call:
 
 ```
-president --query query.fasta --reference referance.fasta -x identity_threshold -p threads -o output.tsv
+president --query query.fasta --reference reference.fasta -x identity_threshold -p threads -o output.tsv
 ```
 
 To run an example, download a [query](https://gitlab.com/RKIBioinformaticsPipelines/president/-/blob/master/examples/NC_045512.2.20mis.fasta) FASTA and
@@ -80,7 +80,6 @@ Note: max(sequence_lengths) is equal to max(length_query, length_reference).
 
 ##### Notes:
 - nextstrain uses a quality threshold of < 3000 non-canonical nucleotides
-- Ns in the query are treated as mismatches, uncomment the corresponding line directly in the code to ignore Ns
 
 
 #### ANI definition:

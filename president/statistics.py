@@ -52,6 +52,8 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
 
     query_lengths = np.zeros(n_seqs, dtype=np.uint32)
 
+    # collect failed ids here
+    failed_ids = []
     with screed.open(query) as seqfile:
         idx = 0
         for qry in seqfile:
@@ -100,7 +102,8 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
                 idx = idx + 1
 
             else:
-                print(qry.name.replace("%space%", " "), 'could not be aligned with pblat')
+                failed_ids.append(qry.name.replace("%space%", " "))
+                print(f"The sequence: '{failed_ids[-1]}' could not be aligned with pblat.")
 
     # format to single result dataframe
     metrics = pd.DataFrame({
@@ -113,8 +116,18 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
         'Query Length': query_lengths,
         'Query #ACGT': acgt_bases,
         'Query #IUPAC-ACGT': no_iupac_bases,
-        'Query #non-IUPAC:': query_lengths - no_iupac_bases - acgt_bases
+        'Query #non-IUPAC:': query_lengths - no_iupac_bases - acgt_bases,
+        'aligned': True,
+        'passed_initial_qc': True
     })
+
+    # add not-aligned sequences sequences to result
+    if len(failed_ids) > 0:
+        invalid_df = pd.DataFrame({"ID": failed_ids})
+        invalid_df["passed_initial_qc"] = True
+        invalid_df["aligned"] = False
+        metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
+
     # sort by invalid sequences first
     metrics = metrics.sort_values(by="Valid")
     # drop 2nd, 3rd best alignment rows for the input sequences

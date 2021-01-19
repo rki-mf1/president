@@ -10,7 +10,7 @@ import numpy as np
 
 import screed
 import pytest
-from president import statistics
+from president import statistics, alignment
 
 fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
 
@@ -63,6 +63,7 @@ def test_unmapped():
     query = os.path.join(fixtures_loc, "test_unmapped.fasta")
 
     metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.93)
+    metrics = metrics[metrics["aligned"]]
 
     exp_invalid = [False, True, True, True, True]
     exp_ident = [0.4063, 0.9953, 0.9952, 0.9947, 0.9796]
@@ -221,3 +222,19 @@ def test_nucleotide_counts():
                  (4, 11, 3),  # ACGT + "RYSWKMBDHVN" + ?!-]
                  (96, 0, 1)]  # ACGT.... + "-"]
     assert exp_tuple == results
+
+
+def test_not_aligned():
+    reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
+    query = os.path.join(fixtures_loc, "test_unmapped.fasta")
+
+    # entries in fasta
+    # one is invalid
+    exp_rows = 6
+
+    # run pblat
+    alignment_f = alignment.pblat(4, reference, query, verbose=1)
+    metrics = statistics.nucleotide_identity(query, alignment_f)
+
+    assert exp_rows == metrics.shape[0]
+    assert metrics["aligned"].sum() == exp_rows - 1

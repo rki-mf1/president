@@ -43,6 +43,8 @@ import screed
 from president import alignment
 from president import statistics
 
+from president import __version__
+
 
 def is_available(name="pblat"):
     """
@@ -82,6 +84,9 @@ def main():  # pragma: no cover
                              '(def: 0.93)')
     parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use.')
     parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report.')
+    parser.add_argument(
+        '-v', '--version', action='version',
+        version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     # Files exist?
@@ -112,10 +117,6 @@ def main():  # pragma: no cover
 
     # parse statistics from file
     metrics = statistics.nucleotide_identity(query, alignment_file, args.id_threshold)
-    # TODO: needs work in the nucleotide_identity function, e.g. see if all remaining valid
-    # sequences got aligned
-    metrics["passed_initial_qc"] = True
-    metrics["aligned"] = True
 
     with screed.open(reference) as seqfile:
         refseq = [i for i in seqfile][0]
@@ -125,7 +126,7 @@ def main():  # pragma: no cover
         invalid_df = pd.DataFrame({"ID": invalid_ids})
         invalid_df["passed_initial_qc"] = False
         invalid_df["aligned"] = False
-        metrics = pd.concat([metrics, invalid_df])
+        metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
 
     # store reference data
     metrics["reference_length"] = len(refseq.sequence)
