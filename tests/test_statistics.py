@@ -88,7 +88,7 @@ def test_global_identity():
     alignment_f = os.path.join(fixtures_loc, "global_identity.tsv")
     query = os.path.join(fixtures_loc, "global_identity.fasta")
 
-    metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.50)
+    metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.5)
 
     exp_invalid = [True]
     exp_ident = [0.5]
