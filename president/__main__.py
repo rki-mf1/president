@@ -118,10 +118,6 @@ def main():  # pragma: no cover
 
     # parse statistics from file
     metrics = statistics.nucleotide_identity(query, alignment_file, args.id_threshold)
-    # TODO: needs work in the nucleotide_identity function, e.g. see if all remaining valid
-    # sequences got aligned
-    metrics["passed_initial_qc"] = True
-    metrics["aligned"] = True
 
     with screed.open(reference) as seqfile:
         refseq = [i for i in seqfile][0]
@@ -131,7 +127,7 @@ def main():  # pragma: no cover
         invalid_df = pd.DataFrame({"ID": invalid_ids})
         invalid_df["passed_initial_qc"] = False
         invalid_df["aligned"] = False
-        metrics = pd.concat([metrics, invalid_df])
+        metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
 
     # store reference data
     metrics["reference_length"] = len(refseq.sequence)

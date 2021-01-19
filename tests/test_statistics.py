@@ -10,7 +10,7 @@ import numpy as np
 
 import pytest
 
-from president import statistics
+from president import statistics, alignment
 
 fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
 
@@ -63,6 +63,7 @@ def test_unmapped():
     query = os.path.join(fixtures_loc, "test_unmapped.fasta")
 
     metrics = statistics.nucleotide_identity(query, alignment_f, id_threshold=0.93)
+    metrics = metrics[metrics["aligned"]]
 
     exp_invalid = [False, True, True, True, True]
     exp_ident = [0.4063, 0.9953, 0.9952, 0.9947, 0.9796]
@@ -197,3 +198,19 @@ def test_estimate_max_invalid_uneven():
     exp_maxinvalid = (101 - 96) * 1.0
     maxinvalid = statistics.estimate_max_invalid(reference, id_threshold=0.95)
     assert exp_maxinvalid == maxinvalid
+
+
+def test_not_aligned():
+    reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
+    query = os.path.join(fixtures_loc, "test_unmapped.fasta")
+
+    # entries in fasta
+    # one is invalid
+    exp_rows = 6
+
+    # run pblat
+    alignment_f = alignment.pblat(4, reference, query, verbose=1)
+    metrics = statistics.nucleotide_identity(query, alignment_f)
+
+    assert exp_rows == metrics.shape[0]
+    assert metrics["aligned"].sum() == exp_rows - 1
