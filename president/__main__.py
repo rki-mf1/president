@@ -29,22 +29,18 @@ be calculated at the nucleotide level relative to the entire length of the
 reference. Only informative nucleotides (A,T,G,C) are considered identical
 to each other.
 """
+import argparse
+import os
 # authors:
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
 import sys
-import os
-import argparse
 from shutil import which
 
 import pandas as pd
 import screed
 
-from president import alignment
-from president import statistics
-from president import sequence
-
-from president import __version__
+from president import alignment, __version__, statistics, writer, sequence
 
 
 def is_available(name="pblat"):
@@ -83,16 +79,27 @@ def main():  # pragma: no cover
                         help='ACGT nucleotide identity threshold after alignment (percentage). '
                              'A query sequence is reported as valid based on this threshold '
                              '(def: 0.93)')
-    parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use.')
-    parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report.')
-    parser.add_argument(
-        '-v', '--version', action='version',
-        version='%(prog)s {version}'.format(version=__version__))
+    parser.add_argument('-t', '--threads', type=int, default=4,
+                        help='Number of threads to use for pblat.')
+    parser.add_argument('-p', '--prefix', required=True,
+                        help='Prefix to be used to store results and FASTA files.')
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     # Files exist?
     assert os.path.isfile(args.reference)
     assert os.path.isfile(args.query)
+
+    # handle path / prefix input
+    out_dir = os.path.dirname(os.path.abspath(args.prefix))
+    file_prefix = os.path.basename(args.prefix)
+    if not os.path.exists(out_dir):
+        print("Creating output directory...")
+        os.makedirs(out_dir)
+
+    print(f"Writing files to: {out_dir}")
+    print(f"Using the prefix: {file_prefix}_* to store results.")
 
     # remove white spaces from fasta files
     reference = sequence.preprocess(args.reference)
@@ -129,6 +136,9 @@ def main():  # pragma: no cover
         invalid_df["aligned"] = False
         metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
 
+    # store sequences
+    writer.write_sequences(args.query, metrics, args.prefix)
+
     # store reference data
     metrics["reference_length"] = len(refseq.sequence)
     metrics["reference"] = os.path.basename(args.reference)
@@ -137,7 +147,7 @@ def main():  # pragma: no cover
     os.remove(alignment_file)
     os.remove(reference)
     os.remove(query)
-    metrics.to_csv(args.output, index=False, sep='\t')
+    metrics.to_csv(os.path.join(out_dir, f"{file_prefix}_report.tsv"), index=False, sep='\t')
     print(metrics)
 
 
