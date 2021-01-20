@@ -66,43 +66,42 @@ def is_available(name="pblat"):
         raise ValueError(f'{name} not on PATH or marked as executable.')
 
 
-def main():  # pragma: no cover
+def aligner(reference_in, query_in, output, id_threshold=0.93, threads=4):  # pragma: no cover
     """
-    Presidents main function for sequence alignment.
+    Align query to the reference and extract qc metrics.
+
+    Parameters
+    ----------
+    reference_in : str
+        reference FASTA location
+    query_in : str
+        query FASTA location.
+    output : str
+        results output file location.
+    id_threshold : float, optional
+        Identity threshold after aligment that must be achieved. The default is 0.93.
+    threads : int, optional
+        Number of threads to use. The default is 4.
 
     Returns
     -------
-    None.
-
+    datframe,
+        result metrics
     """
-    parser = argparse.ArgumentParser(description='Calculate pairwise nucleotide identity.')
-    parser.add_argument('-r', '--reference', required=True, help='Reference genome.')
-    parser.add_argument('-q', '--query', required=True, help='Query genome.')
-    parser.add_argument('-x', '--id_threshold', type=float, default=0.93,
-                        help='ACGT nucleotide identity threshold after alignment (percentage). '
-                             'A query sequence is reported as valid based on this threshold '
-                             '(def: 0.93)')
-    parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use.')
-    parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report.')
-    parser.add_argument(
-        '-v', '--version', action='version',
-        version='%(prog)s {version}'.format(version=__version__))
-    args = parser.parse_args()
-
     # Files exist?
-    assert os.path.isfile(args.reference)
-    assert os.path.isfile(args.query)
+    assert os.path.isfile(reference_in)
+    assert os.path.isfile(query_in)
 
     # remove white spaces from fasta files
-    reference = alignment.remove_spaces(args.reference)
-    query = alignment.remove_spaces(args.query)
+    reference_tmp = alignment.remove_spaces(reference_in)
+    query_tmp = alignment.remove_spaces(query_in)
 
     # check reference fasta
-    statistics.count_reference_sequences(reference)
+    statistics.count_reference_sequences(reference_in)
 
     # perform initial sequence check
-    query, evaluation, invalid_ids = \
-        statistics.split_valid_sequences(query, reference, id_threshold=args.id_threshold)
+    query_tmp, evaluation, invalid_ids = \
+        statistics.split_valid_sequences(query_tmp, reference_tmp, id_threshold=id_threshold)
     # if none of the sequences pass the qc filter, exit.
     # else just perform the alignment witht he seqs passing qc
     if evaluation == "all_invalid":
@@ -113,12 +112,12 @@ def main():  # pragma: no cover
         print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
     # perform alignment with pblat
-    alignment_file = alignment.pblat(args.threads, reference, query, verbose=1)
+    alignment_file = alignment.pblat(threads, reference=reference_tmp, query=query_tmp, verbose=1)
 
     # parse statistics from file
-    metrics = statistics.nucleotide_identity(query, alignment_file, args.id_threshold)
+    metrics = statistics.nucleotide_identity(query_tmp, alignment_file, id_threshold)
 
-    with screed.open(reference) as seqfile:
+    with screed.open(reference_tmp) as seqfile:
         refseq = [i for i in seqfile][0]
 
     # add invalid
@@ -130,14 +129,39 @@ def main():  # pragma: no cover
 
     # store reference data
     metrics["reference_length"] = len(refseq.sequence)
-    metrics["reference"] = os.path.basename(args.reference)
-    metrics["query"] = os.path.basename(args.query)
+    metrics["reference"] = os.path.basename(reference_in)
+    metrics["query"] = os.path.basename(query_in)
     # remove temporary files
     os.remove(alignment_file)
-    os.remove(reference)
-    os.remove(query)
-    metrics.to_csv(args.output, index=False, sep='\t')
+    os.remove(reference_tmp)
+    os.remove(query_tmp)
+    metrics.to_csv(output, index=False, sep='\t')
     print(metrics)
+    return metrics
+
+
+def main():  # pragma: no cover
+    """
+    Parse input parameters and call aligner.
+
+    Returns
+    -------
+        None
+    """
+    parser = argparse.ArgumentParser(description='Calculate pairwise nucleotide identity.')
+    parser.add_argument('-r', '--reference', required=True, help='Reference genome.')
+    parser.add_argument('-q', '--query', required=True, help='Query genome.')
+    parser.add_argument('-x', '--id_threshold', type=float, default=0.93,
+                        help='ACGT nucleotide identity threshold after alignment (percentage). '
+                             'A query sequence is reported as valid based on this threshold '
+                             '(def: 0.93)')
+    parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use.')
+    parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report.')
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s {version}'.format(version=__version__))
+    args = parser.parse_args()
+    aligner(reference_in=args.reference, query_in=args.query, output=args.output,
+            id_threshold=args.id_threshold, threads=args.threads)
 
 
 if __name__ == "__main__":
