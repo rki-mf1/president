@@ -50,11 +50,15 @@ def parse_alignment(alignment_file):
     """
     # Read the alignment(s) with pandas
     # Pandas can be replaced with split to reduce dependencies
-    alignments = pd.read_csv(alignment_file, header=None, sep='\t', skiprows=5)
-    labels = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
-              'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
-              'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
-              'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
-              'QStarts', 'TStarts']
-    alignments.columns = labels
+    try:
+        alignments = pd.read_csv(alignment_file, header=None, sep='\t', skiprows=5)
+        labels = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
+                  'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
+                  'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
+                  'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
+                  'QStarts', 'TStarts']
+        alignments.columns = labels
+    except Exception:
+        print("Error reading pblat output. Perhaps it did not align anything.")
+        exit(1)
     return alignments
