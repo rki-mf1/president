@@ -47,10 +47,12 @@ def test_write_sequences():
     metrics["aligned"] = [False, False, True, False, True]
     metrics["ID"] = ["all_x", "acgtn_short", "aligns", "has_iuepac_2", "has_iuepac_3"]
 
-    tmpdir = tempfile.mkdtemp()
+    tmpdir = os.path.join(tempfile.mkdtemp(), "")
     writer.write_sequences(query, metrics, tmpdir)
-    valid_name = os.path.join(tmpdir, f"{writer.get_filename(query)}_valid.fasta")
-    invalid_name = os.path.join(tmpdir, f"{writer.get_filename(query)}_invalid.fasta")
+    prefix = ""
+    valid_name = os.path.join(tmpdir, f"{prefix}valid.fasta")
+    invalid_name = os.path.join(tmpdir, f"{prefix}invalid.fasta")
+
     with screed.open(valid_name) as seqfile:
         valid_seqs = [seq.name for seq in seqfile]
 

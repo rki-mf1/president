@@ -40,7 +40,7 @@ from shutil import which
 import pandas as pd
 import screed
 
-from president import alignment, __version__, statistics, writer
+from president import alignment, __version__, statistics, writer, sequence
 
 
 def is_available(name="pblat"):
@@ -79,30 +79,31 @@ def main():  # pragma: no cover
                         help='ACGT nucleotide identity threshold after alignment (percentage). '
                              'A query sequence is reported as valid based on this threshold '
                              '(def: 0.93)')
-    parser.add_argument('-p', '--threads', type=int, default=4, help='Number of threads to use.')
-    parser.add_argument('-o', '--output', required=True, help='Output TSV file to write report.')
-    parser.add_argument('-d', '--outdir', required=False, default="",
-                        help='Output directory for FASTA sequences. (default: working dir).')
-    parser.add_argument(
-        '-v', '--version', action='version',
-        version='%(prog)s {version}'.format(version=__version__))
+    parser.add_argument('-t', '--threads', type=int, default=4,
+                        help='Number of threads to use for pblat.')
+    parser.add_argument('-p', '--prefix', required=True,
+                        help='Prefix to be used to store results and FASTA files.')
+    parser.add_argument('-v', '--version', action='version',
+                        version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
     # Files exist?
     assert os.path.isfile(args.reference)
     assert os.path.isfile(args.query)
 
-    # set out_dir
-    if args.outdir == "":
-        out_dir = os.getcwd()
-    else:
-        out_dir = os.path.abspath(args.outdir)
-        if not os.path.exists(out_dir):
-            os.makedirs(out_dir)
+    # handle path / prefix input
+    out_dir = os.path.dirname(os.path.abspath(args.prefix))
+    file_prefix = os.path.basename(args.prefix)
+    if not os.path.exists(out_dir):
+        print("Creating output directory...")
+        os.makedirs(out_dir)
+
+    print(f"Writing files to: {out_dir}")
+    print(f"Using the prefix: {file_prefix}_* to store results.")
 
     # remove white spaces from fasta files
-    reference = alignment.remove_spaces(args.reference)
-    query = alignment.remove_spaces(args.query)
+    reference = sequence.preprocess(args.reference)
+    query = sequence.preprocess(args.query)
 
     # check reference fasta
     statistics.count_reference_sequences(reference)
@@ -136,7 +137,7 @@ def main():  # pragma: no cover
         metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
 
     # store sequences
-    writer.write_sequences(args.query, metrics, out_dir)
+    writer.write_sequences(args.query, metrics, args.prefix)
 
     # store reference data
     metrics["reference_length"] = len(refseq.sequence)
@@ -146,7 +147,7 @@ def main():  # pragma: no cover
     os.remove(alignment_file)
     os.remove(reference)
     os.remove(query)
-    metrics.to_csv(args.output, index=False, sep='\t')
+    metrics.to_csv(os.path.join(out_dir, f"{file_prefix}_report.tsv"), index=False, sep='\t')
     print(metrics)
 
 

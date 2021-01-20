@@ -39,7 +39,7 @@ def write_fasta(fileobj, seq, format_sequence=False):
     fileobj.write(f">{seq.name} {seq.description}\n")
     if format_sequence:
         # make sure to only store upper case, ACGT symbols. replace all others with "N"s
-        fileobj.write(sequence.to_valid_upper(seq.sequence))
+        fileobj.write(sequence.to_valid_upper(seq.sequence) + "\n")
     else:
         fileobj.write(f"{seq.sequence}\n")
 
@@ -64,8 +64,12 @@ def write_sequences(query, metrics, out_dir):
     # valid ids were aligned and pass the qc
     valid_ids = set(metrics[metrics["Valid"] & metrics["aligned"]]["ID"].values)
 
-    valid_name = os.path.join(out_dir, f"{get_filename(query)}_valid.fasta")
-    invalid_name = os.path.join(out_dir, f"{get_filename(query)}_invalid.fasta")
+    prefix = os.path.basename(out_dir)
+    if prefix != "":
+        prefix += "_"
+
+    valid_name = os.path.join(os.path.dirname(out_dir), f"{prefix}valid.fasta")
+    invalid_name = os.path.join(os.path.dirname(out_dir), f"{prefix}invalid.fasta")
     valid_fout = open(valid_name, "w")
     invalid_fout = open(invalid_name, "w")
 

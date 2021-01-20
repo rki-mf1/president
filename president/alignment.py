@@ -26,7 +26,8 @@ def remove_spaces(fasta):
                 if len(line) > 0 and line.startswith('>'):
                     fout.write(line.replace(" ", "%space%") + "\n")
                 else:
-                    fout.write(line + "\n")
+                    # convert sequence to upper case
+                    fout.write(line.upper() + "\n")
     return output
 
 
