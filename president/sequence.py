@@ -5,6 +5,12 @@ import tempfile
 def preprocess(fasta):
     """Remove white spaces from IDs in a FASTA file.
 
+       Removes trailing spaces and newlines.
+
+       Converts sequences to upper case.
+
+       Replaces - with . for pblat.
+
     Parameters
     ----------
     fasta : str
