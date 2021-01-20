@@ -1,5 +1,6 @@
 """Module to compute alignment statistics."""
 from collections import Counter
+from datetime import datetime
 import tempfile
 
 import pandas as pd
@@ -121,7 +122,7 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
         'passed_initial_qc': True
     })
 
-    # add not-aligned sequences sequences to result
+    # add not-aligned sequences to result
     if len(failed_ids) > 0:
         invalid_df = pd.DataFrame({"ID": failed_ids})
         invalid_df["passed_initial_qc"] = True
@@ -133,6 +134,8 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
     # drop 2nd, 3rd best alignment rows for the input sequences
     metrics = metrics.dropna(subset=['ID'])
     metrics = metrics.round(4)
+    # add processing date
+    metrics['Date'] = [datetime.today().strftime('%Y-%m-%d')] * metrics.shape[0]
     return metrics
 
 

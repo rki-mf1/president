@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
-import filecmp
 
 import pandas as pd
 from president import alignment
@@ -45,10 +44,3 @@ def test_parse_alignment_multi():
     alignment_f = os.path.join(fixtures_loc, "100pb_pblat_results_multi.txt")
     metrics = alignment.parse_alignment(alignment_f)
     assert metrics.shape == (2, 21)
-
-
-def test_remove_spaces():
-    fin = os.path.join(fixtures_loc, "test_remove_spaces.fasta")
-    expected = os.path.join(fixtures_loc, "test_remove_spaces_expected.fasta")
-    fout = alignment.remove_spaces(fin)
-    assert filecmp.cmp(fout, expected, shallow=True)

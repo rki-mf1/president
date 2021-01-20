@@ -42,6 +42,7 @@ import screed
 
 from president import alignment
 from president import statistics
+from president import sequence
 
 from president import __version__
 
@@ -93,8 +94,8 @@ def aligner(reference_in, query_in, output, id_threshold=0.93, threads=4):  # pr
     assert os.path.isfile(query_in)
 
     # remove white spaces from fasta files
-    reference_tmp = alignment.remove_spaces(reference_in)
-    query_tmp = alignment.remove_spaces(query_in)
+    reference_tmp = sequence.preprocess(reference_in)
+    query_tmp = sequence.preprocess(query_in)
 
     # check reference fasta
     statistics.count_reference_sequences(reference_in)
