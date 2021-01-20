@@ -110,9 +110,9 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
     metrics = pd.DataFrame({
         'ID': query_ids,
         'Valid': identities >= id_threshold,
-        'Identity': identities,
-        'Ambiguous Identity': ambiguous_identities,
-        'Ambiguous IUPAC Identity': iupac_ambiguous_identities,
+        'ACGT Nucleotide identity': identities,
+        'ACGT Nucleotide identity (ignoring Ns)': ambiguous_identities,
+        'ACGT Nucleotide identity (ignoring non-ACGTNs)': iupac_ambiguous_identities,
         'Ambiguous Bases': ambiguous_bases,
         'Query Length': query_lengths,
         'Query #ACGT': acgt_bases,
