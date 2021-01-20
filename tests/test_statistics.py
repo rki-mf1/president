@@ -27,9 +27,9 @@ def test_statistics():
     exp_length_query = 100
     exp_valid = True
 
-    assert exp_ident == metrics["Identity"].iloc[0]
+    assert exp_ident == metrics["ACGT Nucleotide identity"].iloc[0]
     assert exp_valid == metrics["Valid"].iloc[0]
-    assert exp_ambig_identity == metrics["Ambiguous Identity"].iloc[0]
+    assert exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].iloc[0]
     assert exp_ambig_bases == metrics["Ambiguous Bases"].iloc[0]
     assert exp_length_query == metrics["Query Length"].iloc[0]
 
@@ -51,9 +51,9 @@ def test_multi_statistics():
     exp_IDS = ["100bp_0N_5MM", "100bp_5N_5MM"]
 
     assert np.all(exp_IDS == metrics["ID"])
-    assert np.all(exp_ident == metrics["Identity"].values)
+    assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_invalid == metrics["Valid"].values)
-    assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
+    assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
     assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
     assert np.all(exp_length_query == metrics["Query Length"].values)
 
@@ -77,9 +77,9 @@ def test_unmapped():
                "FAO96286_barcode44/ARTIC/medaka MN908947.3"]
 
     assert np.all(exp_IDS == metrics["ID"])
-    assert np.all(exp_ident == metrics["Identity"].values)
+    assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_invalid == metrics["Valid"].values)
-    assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
+    assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
     assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
     assert np.all(exp_length_query == metrics["Query Length"].values)
 
@@ -98,9 +98,9 @@ def test_global_identity():
     exp_IDS = ["query"]
 
     assert np.all(exp_IDS == metrics["ID"])
-    assert np.all(exp_ident == metrics["Identity"].values)
+    assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_invalid == metrics["Valid"].values)
-    assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
+    assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
     assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
     assert np.all(exp_length_query == metrics["Query Length"].values)
 
@@ -123,9 +123,9 @@ def test_repeated_pblat():
                "FAO96286_barcode44/ARTIC/medaka MN908947.3"]
 
     assert np.all(exp_IDS == metrics["ID"])
-    assert np.all(exp_ident == metrics["Identity"].values)
+    assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_invalid == metrics["Valid"].values)
-    assert np.all(exp_ambig_identity == metrics["Ambiguous Identity"].values)
+    assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
     assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
     assert np.all(exp_length_query == metrics["Query Length"].values)
 

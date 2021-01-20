@@ -19,7 +19,7 @@ def test_aligner():
 
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
     metrics = pm.aligner(reference_in=reference, query_in=query, id_threshold=0.0, threads=4,
-                         output=tmpfile)
+                         prefix=tmpfile)
 
     exp_rows = 5
     os.remove(tmpfile)

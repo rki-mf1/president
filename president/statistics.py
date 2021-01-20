@@ -84,21 +84,21 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
                 # Ns in the query count as mismatch
                 identities[idx] = \
                     alignments.at[idx, 'Matches'] / \
-                    max(alignments.at[idx, 'QSize'],
+                    max(len(qry.sequence),
                         alignments.at[idx, 'TSize'])
 
                 # Ns in the query don't count
                 # q=query, t=target sequence length
                 ambiguous_identities[idx] = \
                     alignments.at[idx, 'Matches'] / \
-                    (max(alignments.at[idx, 'QSize'],
+                    (max(len(qry.sequence),
                          alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
 
                 # Ns in the query don't count
                 # q=query, t=target sequence length
                 iupac_ambiguous_identities[idx] = \
                     alignments.at[idx, 'Matches'] / \
-                    (max(alignments.at[idx, 'QSize'],
+                    (max(len(qry.sequence),
                          alignments.at[idx, 'TSize']) - ambiguous_bases[idx] - no_iupac_bases[idx])
                 idx = idx + 1
 
@@ -110,9 +110,9 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
     metrics = pd.DataFrame({
         'ID': query_ids,
         'Valid': identities >= id_threshold,
-        'Identity': identities,
-        'Ambiguous Identity': ambiguous_identities,
-        'Ambiguous IUPAC Identity': iupac_ambiguous_identities,
+        'ACGT Nucleotide identity': identities,
+        'ACGT Nucleotide identity (ignoring Ns)': ambiguous_identities,
+        'ACGT Nucleotide identity (ignoring non-ACGTNs)': iupac_ambiguous_identities,
         'Ambiguous Bases': ambiguous_bases,
         'Query Length': query_lengths,
         'Query #ACGT': acgt_bases,

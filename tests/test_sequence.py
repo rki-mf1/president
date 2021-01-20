@@ -12,3 +12,10 @@ def test_remove_spaces():
     expected = os.path.join(fixtures_loc, "test_remove_spaces_expected.fasta")
     fout = sequence.preprocess(fin)
     assert filecmp.cmp(fout, expected, shallow=True)
+
+
+def test_to_valid_upper():
+    dna_seq = "ACGTNXZY123!?acgt"
+    exp_sequence = "ACGT" + "N" * len("NXZY123!?") + "ACGT"
+    cm_sequence = sequence.to_valid_upper(dna_seq)
+    assert cm_sequence == exp_sequence
