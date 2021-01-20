@@ -58,7 +58,7 @@ def parse_alignment(alignment_file):
                   'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
                   'QStarts', 'TStarts']
         alignments.columns = labels
-    except:
-        print('Error reading pblat output')
+    except Exception:
+        print("Error reading pblat output. Perhaps it did not align anything.")
         exit(1)
     return alignments
