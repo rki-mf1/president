@@ -1,0 +1,6 @@
+include versioneer.py
+include president/_version.py
+include README.md
+include LICENSE
+graft president
+recursive-exclude * *.py[co]
