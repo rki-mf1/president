@@ -29,18 +29,22 @@ be calculated at the nucleotide level relative to the entire length of the
 reference. Only informative nucleotides (A,T,G,C) are considered identical
 to each other.
 """
-import argparse
-import os
 # authors:
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
+import argparse
+import logging
+import os
 import sys
+from datetime import datetime
 from shutil import which
 
 import pandas as pd
 import screed
 
 from president import alignment, __version__, statistics, writer, sequence
+
+logger = logging.getLogger(__name__)
 
 
 def is_available(name="pblat"):
@@ -92,12 +96,30 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
     # handle path / prefix input
     out_dir = os.path.dirname(os.path.abspath(prefix))
     file_prefix = os.path.basename(prefix)
+
     if not os.path.exists(out_dir):
-        print("Creating output directory...")
         os.makedirs(out_dir)
 
-    print(f"Writing files to: {out_dir}")
-    print(f"Using the prefix: {file_prefix}_* to store results.")
+    # create logger
+    logger = logging.getLogger('president')
+    logger.setLevel(logging.DEBUG)
+    # create console handler and set level to debug
+    ch = logging.FileHandler(os.path.join(out_dir, f"{file_prefix}_president_logger.log"), "w")
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(ch)
+
+    sh = logging.StreamHandler(sys.stdout)
+    sh.setLevel(logging.DEBUG)
+    sh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(sh)
+
+    logger.info("Init logging file.")
+    logger.info("Starting Time: {}".format(datetime.now().strftime("%H:%M:%S")))
+    logger.info("Starting president.")
+    logger.info("Using president version: {}".format(__version__))
+    logger.info(f"Writing files to: {out_dir}")
+    logger.info(f"Using the prefix: {file_prefix}_* to store results.")
 
     # remove white spaces from fasta files
     reference_tmp = sequence.preprocess(reference_in)
@@ -112,11 +134,11 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
     # if none of the sequences pass the qc filter, exit.
     # else just perform the alignment witht he seqs passing qc
     if evaluation == "all_invalid":
-        print("None of the sequences can pass the identity threshold. No alignment done.")
-        print("Exiting president alignment.")
+        logger.error("None of the sequences can pass the identity threshold. No alignment done.")
+        logger.error("Exiting president alignment.")
         sys.exit()
     else:
-        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+        logger.info(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
     # perform alignment with pblat
     alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
@@ -142,11 +164,17 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
     metrics["reference"] = os.path.basename(reference_in)
     metrics["query"] = os.path.basename(query_in)
     # remove temporary files
+    logger.info("Removing temporary files.")
     os.remove(alignment_file)
     os.remove(reference_tmp)
     os.remove(query_tmp)
+    logger.info(f"Storing results {file_prefix}_report.tsv.")
     metrics.to_csv(os.path.join(out_dir, f"{file_prefix}_report.tsv"), index=False, sep='\t')
     print(metrics)
+
+    logger.info("president finished from the command line call:")
+    logger.info(f"Call:'president -r {reference_in} -q {query_in} -p {prefix} -x {id_threshold=} "
+                f"-t {threads}'")
     return metrics
 
 
@@ -173,6 +201,7 @@ def main():  # pragma: no cover
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
+
     aligner(args.reference, args.query, args.prefix, args.id_threshold, args.threads)
 
 

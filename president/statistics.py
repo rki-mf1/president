@@ -1,13 +1,16 @@
 """Module to compute alignment statistics."""
+import logging
+import tempfile
 from collections import Counter
 from datetime import datetime
-import tempfile
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import screed
 
 from president import alignment
+
+logger = logging.getLogger(__name__)
 
 
 def nucleotide_identity(query, alignment_file, id_threshold=0.93):
@@ -37,6 +40,7 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
         ident, ident_non_canonical, non_canonical, len(qry)
 
     """
+    logger.info("Computing alignment scores.")
     alignments = alignment.parse_alignment(alignment_file)
     # get number of sequences and init results
     n_seqs = alignments.shape[0]
@@ -104,7 +108,7 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
 
             else:
                 failed_ids.append(qry.name.replace("%space%", " "))
-                print(f"The sequence: '{failed_ids[-1]}' could not be aligned with pblat.")
+                logger.info(f"The sequence: '{failed_ids[-1]}' could not be aligned with pblat.")
 
     # format to single result dataframe
     metrics = pd.DataFrame({
@@ -123,6 +127,7 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
     })
 
     # add not-aligned sequences to result
+    logger.info(f"In total {len(failed_ids)} sequences failed to align to the reference.")
     if len(failed_ids) > 0:
         invalid_df = pd.DataFrame({"ID": failed_ids})
         invalid_df["passed_initial_qc"] = True
@@ -171,15 +176,18 @@ def count_reference_sequences(reference):
         location of FASTA reference.
 
     """
+    logger.info("Counting reference sequences:")
     # read reference file
     with screed.open(reference) as seqfile:
         nrefs = np.sum([1 for i in seqfile])
 
     if nrefs == 1:
         print("Number of references is equal to one (qc passed)")
-
+        logger.info("Reference check passed.")
     elif (nrefs == 0) | (nrefs) > 1:
-        raise ValueError(f"Number of reference sequences ({nrefs}) is not equal to 1.")
+        msg = f"Number of reference sequences ({nrefs}) is not equal to 1."
+        logger.error(msg)
+        raise ValueError(msg)
 
 
 def split_valid_sequences(query, reference, id_threshold=0.93):
@@ -204,6 +212,7 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
         query location, diagnostic, identifier failed
 
     """
+    logger.info("Extract valid sequences for pblat alignment")
     # read reference file
     with screed.open(reference) as seqfile:
         length_ref = [len(i.sequence) for i in seqfile][0]
@@ -238,6 +247,7 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
     elif all_valid.sum() == 0:
         # all bad, none of the sequences pass the qc
         invalid_loc = tempfile.mkstemp(suffix="_valid.fasta")[1]
+        logger.info(f"Storing temporary file for invalid sequences here: {invalid_loc}")
         return invalid_loc, "all_invalid", \
             [queries[idx].name for idx, cond in enumerate(all_valid) if not cond]
 
@@ -251,12 +261,14 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
 
         # write valid sequences only
         valid_loc = tempfile.mkstemp(suffix="_valid.fasta")[1]
+        logger.info(f"Storing temporary file for valid sequences here: {valid_loc}")
         with open(valid_loc, "w") as fout:
             for vseq in valid_sequences:
                 fout.write(f">{vseq['name']} {vseq['description']}\n")
                 fout.write(f"{vseq['sequence']}\n")
 
         invalid_loc = tempfile.mkstemp(suffix="_invalid.fasta")[1]
+        logger.info(f"Storing temporary file for valid sequences here: {invalid_loc}")
         # write invalid sequences only
         with open(invalid_loc, "w") as fout:
             for vseq in invalid_sequences:

@@ -1,8 +1,12 @@
 """Alignment Modules used in president."""
-import tempfile
+import logging
 import subprocess
+import tempfile
+import time
 
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 def pblat(threads, reference, query, verbose=0):
@@ -24,13 +28,13 @@ def pblat(threads, reference, query, verbose=0):
     alignments.
 
     """
-    print('Running pblat ...')
     _, alignments = tempfile.mkstemp()
     cmd = f'pblat -threads={threads} {reference} {query} {alignments}'
-    if verbose:
-        print(cmd)
+    logger.info(f'Running pblat with: {cmd}')
+    start = time.time()
     _ = subprocess.check_output(cmd, shell=True)
-    print('Finished pblat.')
+    end = time.time()
+    logger.info(f'Finished pblat. (took: {(end - start) / 60.:.6f} minutes)')
     return alignments
 
 
@@ -50,6 +54,7 @@ def parse_alignment(alignment_file):
     """
     # Read the alignment(s) with pandas
     # Pandas can be replaced with split to reduce dependencies
+    logger.info(f"Parsing alignments from file: {alignment_file}")
     try:
         alignments = pd.read_csv(alignment_file, header=None, sep='\t', skiprows=5)
         labels = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
@@ -58,7 +63,8 @@ def parse_alignment(alignment_file):
                   'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
                   'QStarts', 'TStarts']
         alignments.columns = labels
+        logger.info("Successfully parsed alignment.")
     except Exception:
-        print("Error reading pblat output. Perhaps it did not align anything.")
+        logger.error("Error reading pblat output. Perhaps it did not align anything.")
         exit(1)
     return alignments

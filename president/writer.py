@@ -1,9 +1,12 @@
 """Module for writing and organizing results."""
 import os
+import logging
 
 import screed
 
 from president import sequence
+
+logger = logging.getLogger(__name__)
 
 
 def get_filename(file):
@@ -81,7 +84,7 @@ def write_sequences(query, metrics, out_dir):
             else:
                 write_fasta(invalid_fout, seq)
 
-    print(f"Valid sequences written to: {valid_name}")
-    print(f"Invalid sequences written to: {invalid_name}")
+    logger.info(f"Valid sequences written to: {valid_name}")
+    logger.info(f"Invalid sequences written to: {invalid_name}")
     valid_fout.close()
     invalid_fout.close()

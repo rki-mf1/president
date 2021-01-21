@@ -1,5 +1,9 @@
 """Sequence Modules used in president."""
 import tempfile
+import logging
+import os
+
+logger = logging.getLogger(__name__)
 
 
 def to_valid_upper(dna_seq):
@@ -38,6 +42,7 @@ def preprocess(fasta):
     processed FASTA file.
 
     """
+    logger.info(f"Preprocessing (strip, space, upper) input FASTA : {os.path.basename(fasta)}")
     _, output = tempfile.mkstemp()
     with open(output, "w") as fout:
         with open(fasta, "r") as fin:
