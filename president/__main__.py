@@ -91,11 +91,12 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
     # handle path / prefix input
     out_dir = os.path.dirname(os.path.abspath(prefix))
     # dir is not created when prefix ends with /
-    # this is a fix for the bug
     if prefix.endswith('/'):
         out_dir = prefix
+
     if prefix != "" and not prefix.endswith('/'):
         prefix += "_"
+
     file_prefix = os.path.basename(prefix)
     if not os.path.exists(out_dir):
         print("Creating output directory...")
@@ -125,6 +126,7 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
 
     print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
+    # align sequences if more than 1 sequence passes the initial qc
     if evaluation != "all_invalid":
         # perform alignment with pblat
         alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
@@ -132,10 +134,7 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
         # parse statistics from file
         metrics = statistics.nucleotide_identity(query_tmp, alignment_file, id_threshold)
 
-    with screed.open(reference_in) as seqfile:
-        refseq = [i for i in seqfile][0]
-
-    # add invalid
+    # add invalid sequences to the reporting dataframe
     if len(invalid_ids) > 0:
         invalid_df = pd.DataFrame({"ID": invalid_ids})
         invalid_df["passed_initial_qc"] = False
@@ -144,6 +143,10 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
             metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
         else:
             metrics = invalid_df
+
+    # get reference length for output file
+    with screed.open(reference_in) as seqfile:
+        refseq = [i for i in seqfile][0]
 
     # store sequences
     writer.write_sequences(query_in, metrics, prefix, evaluation)
