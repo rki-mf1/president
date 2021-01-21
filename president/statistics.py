@@ -117,7 +117,7 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
         'Query Length': query_lengths,
         'Query #ACGT': acgt_bases,
         'Query #IUPAC-ACGT': no_iupac_bases,
-        'Query #non-IUPAC:': query_lengths - no_iupac_bases - acgt_bases,
+        'Query #non-IUPAC': query_lengths - no_iupac_bases - acgt_bases,
         'aligned': True,
         'passed_initial_qc': True
     })
