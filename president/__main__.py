@@ -34,7 +34,6 @@ import os
 # authors:
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
-import sys
 from shutil import which
 
 import pandas as pd
@@ -117,18 +116,21 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
         statistics.split_valid_sequences(query_tmp, reference_tmp, id_threshold=id_threshold)
     # if none of the sequences pass the qc filter, exit.
     # else just perform the alignment witht he seqs passing qc
-    if evaluation == "all_invalid":
-        print("None of the sequences can pass the identity threshold. No alignment done.")
-        print("Exiting president alignment.")
-        sys.exit()
-    else:
-        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+#    if evaluation == "all_invalid":
+#        print("None of the sequences can pass the identity threshold. No alignment done.")
+#        print("Exiting president alignment.")
+#        sys.exit()
+#    else:
+#        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
-    # perform alignment with pblat
-    alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
+    print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
-    # parse statistics from file
-    metrics = statistics.nucleotide_identity(query_tmp, alignment_file, id_threshold)
+    if evaluation != "all_invalid":
+        # perform alignment with pblat
+        alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
+
+        # parse statistics from file
+        metrics = statistics.nucleotide_identity(query_tmp, alignment_file, id_threshold)
 
     with screed.open(reference_in) as seqfile:
         refseq = [i for i in seqfile][0]
@@ -138,17 +140,21 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
         invalid_df = pd.DataFrame({"ID": invalid_ids})
         invalid_df["passed_initial_qc"] = False
         invalid_df["aligned"] = False
-        metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
+        if evaluation != "all_invalid":
+            metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
+        else:
+            metrics = invalid_df
 
     # store sequences
-    writer.write_sequences(query_in, metrics, prefix)
+    writer.write_sequences(query_in, metrics, prefix, evaluation)
 
     # store reference data
     metrics["reference_length"] = len(refseq.sequence)
     metrics["reference"] = os.path.basename(reference_in)
     metrics["query"] = os.path.basename(query_in)
     # remove temporary files
-    os.remove(alignment_file)
+    if evaluation != "all_invalid":
+        os.remove(alignment_file)
     os.remove(reference_tmp)
     os.remove(query_tmp)
     metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t')
