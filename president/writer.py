@@ -65,8 +65,6 @@ def write_sequences(query, metrics, out_dir):
     valid_ids = set(metrics[metrics["Valid"] & metrics["aligned"]]["ID"].values)
 
     prefix = os.path.basename(out_dir)
-    if prefix != "":
-        prefix += "_"
 
     valid_name = os.path.join(os.path.dirname(out_dir), f"{prefix}valid.fasta")
     invalid_name = os.path.join(os.path.dirname(out_dir), f"{prefix}invalid.fasta")

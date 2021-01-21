@@ -91,10 +91,16 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
 
     # handle path / prefix input
     out_dir = os.path.dirname(os.path.abspath(prefix))
+    # dir is not created when prefix ends with /
+    # this is a fix for the bug
+    if prefix.endswith('/'):
+        out_dir = prefix
+    if prefix != "" and not prefix.endswith('/'):
+        prefix += "_"
     file_prefix = os.path.basename(prefix)
     if not os.path.exists(out_dir):
         print("Creating output directory...")
-        os.makedirs(out_dir)
+        os.makedirs(out_dir, exist_ok=True)
 
     print(f"Writing files to: {out_dir}")
     print(f"Using the prefix: {file_prefix}_* to store results.")
@@ -145,7 +151,7 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
     os.remove(alignment_file)
     os.remove(reference_tmp)
     os.remove(query_tmp)
-    metrics.to_csv(os.path.join(out_dir, f"{file_prefix}_report.tsv"), index=False, sep='\t')
+    metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t')
     print(metrics)
     return metrics
 
