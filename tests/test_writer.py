@@ -48,7 +48,7 @@ def test_write_sequences():
     metrics["ID"] = ["all_x", "acgtn_short", "aligns", "has_iuepac_2", "has_iuepac_3"]
 
     tmpdir = os.path.join(tempfile.mkdtemp(), "")
-    writer.write_sequences(query, metrics, tmpdir)
+    writer.write_sequences(query, metrics, tmpdir, "mixed")
     prefix = ""
     valid_name = os.path.join(tmpdir, f"{prefix}valid.fasta")
     invalid_name = os.path.join(tmpdir, f"{prefix}invalid.fasta")
