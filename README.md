@@ -11,13 +11,18 @@ Calculate pairwise nucleotide identity with respect to a reference sequence.
 
 Given a reference and a query sequence, calculate pairwise nucleotide identity with respect to the reference sequence relative to the entire length of the reference. In the main metric, only informative nucleotides (A, T, G, C) are considered identical to each other. The tool also provides some further metrics (e.g. regarding ambiguous 'N's) and splits the input FASTA into _valid_ and _failed_ FASTA files for further processing. 
 
-#### Requirements:
-To get president running follow the steps below. Note that `pblat` only runs on Linux.
+#### Installation:
+To install president with conda, run the commands below:
 
 ```
-conda create -y -n president -c bioconda python=3.8 pblat
+conda create -y -n president -c bioconda president
 conda activate president
-pip install pypresident
+```
+
+Note that `pblat` is a dependency and only runs on Linux. Alternatively, president can be installed with pip in an environment where pblat is in the PATH:
+
+```
+pip install president
 ```
 
 #### Usage:
