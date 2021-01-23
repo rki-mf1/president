@@ -15,7 +15,7 @@ Given a reference and a query sequence, calculate pairwise nucleotide identity w
 To install president with conda, run the commands below:
 
 ```
-conda create -y -n president -c bioconda president
+conda create -y -n president -c bioconda -c conda-forge president
 conda activate president
 ```
 
@@ -32,8 +32,8 @@ pypresident installs the package and the pairwise alignment can be run with the 
 president --query query.fasta --reference reference.fasta -x identity_threshold -t threads -p /path/to/output/prefix
 ```
 
-To run an example, download a [query](https://gitlab.com/RKIBioinformaticsPipelines/president/-/blob/master/examples/NC_045512.2.20mis.fasta) FASTA and
-a [reference](https://gitlab.com/RKIBioinformaticsPipelines/president/-/blob/master/examples/NC_045512.2.fasta) FASTA from GitLab.
+To run an example, download a [query](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/master/examples/NC_045512.2.20mis.fasta) FASTA and
+a [reference](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/master/examples/NC_045512.2.fasta) FASTA from GitLab.
 
 Run the alignment with the following command and identity of ACGT bases of 93%. Note that multiple fasta sequences are allowed to be present in the query but **not** in the reference FASTA.
 
@@ -51,7 +51,7 @@ The script provides:
 
 The separation between the _valid_ and _invalid_ bin is mainly based on the defined identity threshold (`-x`, default: 0.93) and further sanity checks (non-IUPAC characters, amount of 'N's and query length that cause sequence identity to drop below `-x`).
 
-An example from the call described above can be found [online](https://gitlab.com/RKIBioinformaticsPipelines/president/-/blob/master/examples/report.csv).
+An example from the call described above can be found [online](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/master/examples/report.csv).
 
 The transposed version of the output is shown below.
 
@@ -102,4 +102,4 @@ __Note__: max(sequence_lengths) is equal to max(length_query, length_reference).
 
 
 #### ANI definition:
-- https: // pubmed.ncbi.nlm.nih.gov/17220447/
+- https://pubmed.ncbi.nlm.nih.gov/17220447/
