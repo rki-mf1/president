@@ -265,8 +265,8 @@ def test_queries_all_invalid():
     assert np.all(exp_invalid == metrics["Valid"].values)
     assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
-    assert np.all(exp_non_ACTGN_identity == metrics["ACGT Nucleotide identity (ignoring\
-           non-ACGTNs)"].values)
+    assert np.all(exp_non_ACTGN_identity == metrics[("ACGT Nucleotide identity (ignoring "
+                                                    "non-ACGTNs)")].values)
     assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
     assert np.all(exp_length_query == metrics["Query Length"].values)
     assert np.all(exp_query_ACTG == metrics["Query #ACGT"].values)
