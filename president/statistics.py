@@ -139,6 +139,76 @@ def nucleotide_identity(query, alignment_file, id_threshold=0.93):
     return metrics
 
 
+def metrics_all_invalid(query, n_seqs):
+    """Calculate query metrics for case of invalid only sequences.
+
+    Parameters
+    ----------
+        query : str
+            query FASTA location.
+
+        n_seqs : int
+            number of sequences in query
+
+    Returns
+    -------
+    pandas Dataframe
+        ID, Valid, ACGT Nucleotide identity, ACGT Nucleotide identity (ignoring Ns),
+        ACGT Nucleotide identity (ignoring non-ACGTNs), Ambiguous Bases, Query Length,
+        Query #ACGT, Query #IUPAC-ACGT, Query #non-IUPAC, aligned, passed_initial_qc
+    """
+
+    query_ids = np.empty(n_seqs, dtype="object")
+
+    ambiguous_bases = np.zeros(n_seqs)
+    acgt_bases = np.zeros(n_seqs)
+    no_iupac_bases = np.zeros(n_seqs)
+
+    ambiguous_identities = np.zeros(n_seqs)
+    iupac_ambiguous_identities = np.zeros(n_seqs)
+
+    query_lengths = np.zeros(n_seqs, dtype=np.uint32)
+
+    with screed.open(query) as seqfile:
+        idx = 0
+        for qry in seqfile:
+            # nucleotide counts
+            acgts_ct, iupacs_ct, nonupac_ct = count_nucleotides(qry.sequence)
+            
+            # basic sequence info
+            query_ids[idx] = qry.name.replace("%space%", " ")
+
+            query_lengths[idx] = len(qry.sequence)
+            acgt_bases[idx] = acgts_ct
+            no_iupac_bases[idx] = iupacs_ct
+
+            # Consider only sites where the query has non-ACTG characters
+            # Metric issue #2 (B)
+            ambiguous_bases[idx] = Counter(qry.sequence)["N"]
+
+            idx = idx + 1
+
+    # format to single result dataframe
+    metrics = pd.DataFrame({
+        'ID': query_ids,
+        'Valid': False,
+        'ACGT Nucleotide identity': "",
+        'ACGT Nucleotide identity (ignoring Ns)': "",
+        'ACGT Nucleotide identity (ignoring non-ACGTNs)': "",
+        'Ambiguous Bases': ambiguous_bases,
+        'Query Length': query_lengths,
+        'Query #ACGT': acgt_bases,
+        'Query #IUPAC-ACGT': no_iupac_bases,
+        'Query #non-IUPAC': query_lengths - no_iupac_bases - acgt_bases,
+        'aligned': False,
+        'passed_initial_qc': False
+    })
+
+    # add processing date
+    metrics['Date'] = [datetime.today().strftime('%Y-%m-%d')] * metrics.shape[0]
+    return metrics
+
+
 def estimate_max_invalid(reference, id_threshold=0.93):
     """
     Estimate the lower bound (floor) of the sequence length and id_threshold in number of bases.
@@ -237,9 +307,15 @@ def split_valid_sequences(query, reference, id_threshold=0.93):
 
     elif all_valid.sum() == 0:
         # all bad, none of the sequences pass the qc
-        invalid_loc = tempfile.mkstemp(suffix="_valid.fasta")[1]
+        invalid_sequences = [queries[idx] for idx, cond in enumerate(all_valid) if not cond]
+        invalid_loc = tempfile.mkstemp(suffix="_invalid.fasta")[1]
+        # write invalid sequences
+        with open(invalid_loc, "w") as fout:
+            for vseq in invalid_sequences:
+                fout.write(f">{vseq['name']} {vseq['description']}\n")
+                fout.write(f"{vseq['sequence']}\n")
         return invalid_loc, "all_invalid", \
-            [queries[idx].name for idx, cond in enumerate(all_valid) if not cond]
+            [qry.name.replace("%space%", " ") for qry in invalid_sequences]
 
     else:
         # some sequences pass qc, others not

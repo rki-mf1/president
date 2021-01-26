@@ -35,6 +35,7 @@ import os
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
 from shutil import which
+from datetime import datetime
 
 import pandas as pd
 import screed
@@ -136,13 +137,13 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
 
     # add invalid sequences to the reporting dataframe
     if len(invalid_ids) > 0:
-        invalid_df = pd.DataFrame({"ID": invalid_ids})
+        invalid_df = pd.DataFrame({"ID": [el.replace("%space%", " ") for el in invalid_ids]})
         invalid_df["passed_initial_qc"] = False
         invalid_df["aligned"] = False
         if evaluation != "all_invalid":
             metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
         else:
-            metrics = invalid_df
+            metrics = statistics.metrics_all_invalid(query_tmp, len(invalid_ids))
 
     # get reference length for output file
     with screed.open(reference_in) as seqfile:
