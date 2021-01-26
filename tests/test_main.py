@@ -18,8 +18,8 @@ def test_aligner():
     reference = os.path.join(fixtures_loc, "test_UPAC_ref.fasta")
 
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
-    metrics = pm.aligner(reference_in=reference, query_in=query, id_threshold=0.0, threads=4,
-                         prefix=tmpfile)
+    metrics = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.0, threads=4,
+                         prefix_in=tmpfile)
 
     exp_rows = 5
     os.remove(tmpfile)
