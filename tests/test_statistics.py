@@ -245,9 +245,10 @@ def test_queries_all_invalid():
     n_seqs = 2
     metrics = statistics.metrics_all_invalid(query, n_seqs)
 
-    exp_IDS = ["NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, \
-               complete genome",
-               "seq 2"]
+    exp_IDS = [
+        ("NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, "
+            "complete genome"),
+        "seq 2"]
     exp_invalid = [False, False]
     exp_ident = ["", ""]
     exp_ambig_identity = ["", ""]
