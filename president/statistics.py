@@ -157,7 +157,6 @@ def metrics_all_invalid(query, n_seqs):
         ACGT Nucleotide identity (ignoring non-ACGTNs), Ambiguous Bases, Query Length,
         Query #ACGT, Query #IUPAC-ACGT, Query #non-IUPAC, aligned, passed_initial_qc
     """
-
     query_ids = np.empty(n_seqs, dtype="object")
 
     ambiguous_bases = np.zeros(n_seqs)

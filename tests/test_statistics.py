@@ -239,14 +239,15 @@ def test_not_aligned():
     assert exp_rows == metrics.shape[0]
     assert metrics["aligned"].sum() == exp_rows - 1
 
+
 def test_queries_all_invalid():
     query = os.path.join(fixtures_loc, "nnnnnnn_2files.fasta")
     n_seqs = 2
     metrics = statistics.metrics_all_invalid(query, n_seqs)
 
-    exp_IDS = ["NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, complete genome",
-               "seq 2",
-                ]
+    exp_IDS = ["NC_045512.2 Severe acute respiratory syndrome coronavirus 2 isolate Wuhan-Hu-1, \
+               complete genome",
+               "seq 2"]
     exp_invalid = [False, False]
     exp_ident = ["", ""]
     exp_ambig_identity = ["", ""]
@@ -259,12 +260,12 @@ def test_queries_all_invalid():
     exp_aligned = [False, False]
     exp_passed_initial_qc = [False, False]
 
-
     assert np.all(exp_IDS == metrics["ID"])
     assert np.all(exp_invalid == metrics["Valid"].values)
     assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
-    assert np.all(exp_non_ACTGN_identity == metrics["ACGT Nucleotide identity (ignoring non-ACGTNs)"].values)
+    assert np.all(exp_non_ACTGN_identity == metrics["ACGT Nucleotide identity (ignoring\
+           non-ACGTNs)"].values)
     assert np.all(exp_ambig_bases == metrics["Ambiguous Bases"].values)
     assert np.all(exp_length_query == metrics["Query Length"].values)
     assert np.all(exp_query_ACTG == metrics["Query #ACGT"].values)
@@ -272,5 +273,3 @@ def test_queries_all_invalid():
     assert np.all(exp_query_non_IUPAC == metrics["Query #non-IUPAC"].values)
     assert np.all(exp_aligned == metrics["aligned"].values)
     assert np.all(exp_passed_initial_qc == metrics["passed_initial_qc"].values)
-
-
