@@ -164,9 +164,6 @@ def metrics_all_invalid(query, n_seqs):
     acgt_bases = np.zeros(n_seqs)
     no_iupac_bases = np.zeros(n_seqs)
 
-    ambiguous_identities = np.zeros(n_seqs)
-    iupac_ambiguous_identities = np.zeros(n_seqs)
-
     query_lengths = np.zeros(n_seqs, dtype=np.uint32)
 
     with screed.open(query) as seqfile:
@@ -174,7 +171,7 @@ def metrics_all_invalid(query, n_seqs):
         for qry in seqfile:
             # nucleotide counts
             acgts_ct, iupacs_ct, nonupac_ct = count_nucleotides(qry.sequence)
-            
+
             # basic sequence info
             query_ids[idx] = qry.name.replace("%space%", " ")
 

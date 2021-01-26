@@ -35,7 +35,6 @@ import os
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
 from shutil import which
-from datetime import datetime
 
 import pandas as pd
 import screed
