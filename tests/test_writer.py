@@ -63,3 +63,21 @@ def test_write_sequences():
 
     assert valid_seqs == ["aligns"]
     assert invalid_seqs == ['all_x', 'acgtn_short', 'has_iuepac_2', 'has_iuepac_3']
+
+
+def test_trailing_whitespace():
+    query = os.path.join(fixtures_loc, "test_UPAC_statistics.fasta")
+
+    metrics = pd.DataFrame()
+    metrics["Valid"] = [False, False, True, False, False]
+    metrics["aligned"] = [False, False, True, False, True]
+    metrics["ID"] = ["all_x", "acgtn_short", "aligns", "has_iuepac_2", "has_iuepac_3"]
+
+    tmpdir = os.path.join(tempfile.mkdtemp(), "")
+    writer.write_sequences(query, metrics, tmpdir, "mixed")
+
+    with open(os.path.join(tmpdir, "invalid.fasta"), "r") as fobj:
+        header = fobj.readline()
+
+    # test if trailing whitespace
+    assert not header[:-1].endswith(" ")
