@@ -49,17 +49,8 @@ def summarize_query(query):
     cmd = f'grep ">" {query} | wc -l'
     n_seqs = int(subprocess.check_output(cmd, shell=True))
 
-    statistic_values = np.dtype([
-        ("query_description", "object"),
-        ("query_name", "object"),
-        ("query_index", "object"),
-        ("acgt_bases", np.uint32),
-        ("iupac_bases", np.uint32),
-        ("non_upac_bases", np.uint32),
-        ("N_bases", np.uint32),
-        ("length_query", np.uint32),
-        ("Ngap", np.uint32)])
-    statistics_ar = np.zeros(n_seqs, dtype=statistic_values)
+    # init data table
+    statistics_ar = writer.init_metrics(n_seqs)
 
     with screed.open(query) as seqfile:
         for idx, qry in enumerate(seqfile):
@@ -166,10 +157,11 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.93):
     alignments.columns = "pblat_" + alignments.columns
 
     idmap = {i: j for i, j in
-             zip(summary_stats_query["query_name"], summary_stats_query["query_index"])}
+             zip(summary_stats_query["query_name"].str.replace("%space%", " "),
+                 summary_stats_query["query_index"])}
 
     # retrieve index for joining data
-    alignments["query_index"] = alignments["pblat_QName"].map(idmap)
+    alignments["query_index"] = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap)
 
     president_df = summary_stats_query.merge(alignments, left_on="query_index",
                                              right_on="query_index", how="left",
@@ -181,7 +173,7 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.93):
     president_df["qc_post_aligned"] = False
 
     # get ids of values to overwrite
-    idx = alignments["pblat_QName"].map(idmap).values
+    idx = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap).values
 
     president_df.at[idx, "qc_post_aligned"] = True
     # Metric valid_sequences #2 (A)
@@ -191,9 +183,6 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.93):
 
     # Ns in the query don't count
     # q=query, t=target sequence length
-    # ambiguous_identities[idx] = alignments.at[idx, 'Matches'] / (max(len(qry.sequence),
-    # alignments.at[idx, 'TSize']) - ambiguous_bases[idx])
-
     president_df.at[idx, "ambiguous_identities"] = \
         president_df["pblat_Matches"] / \
         (president_df[["pblat_TSize", "length_query"]].max(axis=1) - president_df["N_bases"])
@@ -220,7 +209,6 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.93):
     president_df = president_df.rename(
         columns={"pblat_Matches": "Matches",
                  "pblat_Mismatches": "Mismatches",
-                 "pblat_RepMatch": "RepMatch",
                  "pblat_TName": "reference_name",
                  "identities": "ACGT Nucleotide identity",
                  "ambiguous_identities": "ACGT Nucleotide identity (ignoring Ns)",
