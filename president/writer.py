@@ -31,12 +31,14 @@ def write_fasta(fileobj, seq, format_sequence=False):
         file object (opened)
     seq: seq object,
         screed sequence object
-
+    format_sequence: bool,
+                    If True, transform sequence to valid upper case sequence (default: False)
     Returns
     -------
         None
     """
-    fileobj.write(f">{seq.name} {seq.description}\n")
+    sequence_header = f">{seq.name} {seq.description}"
+    fileobj.write(sequence_header.rstrip()+"\n")
     if format_sequence:
         # make sure to only store upper case, ACGT symbols. replace all others with "N"s
         fileobj.write(sequence.to_valid_upper(seq.sequence) + "\n")
