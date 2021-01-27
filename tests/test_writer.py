@@ -43,9 +43,9 @@ def test_write_sequences():
     query = os.path.join(fixtures_loc, "test_UPAC_statistics.fasta")
 
     metrics = pd.DataFrame()
-    metrics["Valid"] = [False, False, True, False, False]
+    metrics["qc_post_aligned_all_valid"] = [False, False, True, False, False]
     metrics["aligned"] = [False, False, True, False, True]
-    metrics["ID"] = ["all_x", "acgtn_short", "aligns", "has_iuepac_2", "has_iuepac_3"]
+    metrics["query_name"] = ["all_x", "acgtn_short", "aligns", "has_iuepac_2", "has_iuepac_3"]
 
     tmpdir = os.path.join(tempfile.mkdtemp(), "")
     writer.write_sequences(query, metrics, tmpdir, "mixed")

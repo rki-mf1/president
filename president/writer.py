@@ -64,10 +64,11 @@ def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
     prefix = os.path.basename(out_dir)
     if evaluation != "all_invalid":
         # valid ids were aligned and pass the qc
-        valid_ids = set(metrics[metrics["Valid"] & metrics["aligned"]]["ID"].values)
+        valid_ids = set(metrics[metrics["qc_post_aligned_all_valid"]]["query_name"].values)
     else:
         valid_ids = set()
 
+    # split valid and invalid file writers
     valid_name = os.path.join(os.path.dirname(out_dir), f"{prefix}valid.fasta")
     valid_fout = open(valid_name, write_mode)
     invalid_name = os.path.join(os.path.dirname(out_dir), f"{prefix}invalid.fasta")
