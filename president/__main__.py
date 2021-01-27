@@ -62,7 +62,8 @@ def is_available(name="pblat"):
         raise ValueError(f'{name} not on PATH or marked as executable.')
 
 
-def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pragma: no cover
+def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.93,
+            threads=4):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
 
@@ -70,9 +71,9 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
     ----------
     reference_in : str
         reference FASTA location
-    query_in : str
+    query_in_raw : str
         query FASTA location.
-    prefix : str
+    prefix_in : str
         Prefix where to store the results.
     id_threshold : float, optional
         Identity threshold after aligment that must be achieved. The default is 0.93.
@@ -86,82 +87,97 @@ def aligner(reference_in, query_in, prefix, id_threshold=0.93, threads=4):  # pr
     """
     # Files exist?
     assert os.path.isfile(reference_in)
-    assert os.path.isfile(query_in)
+    print(query_in_raw)
+    # make sure input is iterable
+    if not isinstance(query_in_raw, list):
+        query_in_raw = [query_in_raw]
 
-    # handle path / prefix input
-    out_dir = os.path.dirname(os.path.abspath(prefix))
-    # dir is not created when prefix ends with /
-    if prefix.endswith('/'):
-        out_dir = prefix
+    for qi, query_in in enumerate(query_in_raw):
+        print("##################### Running President ##########################")
+        prefix = prefix_in
+        print(f"Running file: {query_in}")
+        assert os.path.isfile(query_in)
 
-    if prefix != "" and not prefix.endswith('/'):
-        prefix += "_"
+        # handle path / prefix input
+        out_dir = os.path.dirname(os.path.abspath(prefix))
+        # dir is not created when prefix ends with /
+        if prefix.endswith('/'):
+            out_dir = prefix
 
-    file_prefix = os.path.basename(prefix)
-    if not os.path.exists(out_dir):
-        print("Creating output directory...")
-        os.makedirs(out_dir, exist_ok=True)
+        if prefix != "" and not prefix.endswith('/'):
+            prefix += "_"
 
-    print(f"Writing files to: {out_dir}")
-    print(f"Using the prefix: {file_prefix}_* to store results.")
+        file_prefix = os.path.basename(prefix)
+        if not os.path.exists(out_dir):
+            print("Creating output directory...")
+            os.makedirs(out_dir, exist_ok=True)
 
-    # remove white spaces from fasta files
-    reference_tmp = sequence.preprocess(reference_in)
-    query_tmp = sequence.preprocess(query_in)
+        print(f"Writing files to: {out_dir}")
+        print(f"Using the prefix: {file_prefix}_* to store results.")
 
-    # check reference fasta
-    statistics.count_reference_sequences(reference_tmp)
+        # remove white spaces from fasta files
+        reference_tmp = sequence.preprocess(reference_in)
+        query_tmp = sequence.preprocess(query_in)
 
-    # perform initial sequence check
-    query_tmp, evaluation, invalid_ids = \
-        statistics.split_valid_sequences(query_tmp, reference_tmp, id_threshold=id_threshold)
-    # if none of the sequences pass the qc filter, exit.
-    # else just perform the alignment witht he seqs passing qc
-#    if evaluation == "all_invalid":
-#        print("None of the sequences can pass the identity threshold. No alignment done.")
-#        print("Exiting president alignment.")
-#        sys.exit()
-#    else:
-#        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+        # check reference fasta
+        statistics.count_reference_sequences(reference_tmp)
 
-    print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+        # perform initial sequence check
+        query_tmp, evaluation, invalid_ids = \
+            statistics.split_valid_sequences(query_tmp, reference_tmp, id_threshold=id_threshold)
+        # if none of the sequences pass the qc filter, exit.
+        # else just perform the alignment witht he seqs passing qc
+    #    if evaluation == "all_invalid":
+    #        print("None of the sequences can pass the identity threshold. No alignment done.")
+    #        print("Exiting president alignment.")
+    #        sys.exit()
+    #    else:
+    #        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
-    # align sequences if more than 1 sequence passes the initial qc
-    if evaluation != "all_invalid":
-        # perform alignment with pblat
-        alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
+        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
-        # parse statistics from file
-        metrics = statistics.nucleotide_identity(query_tmp, alignment_file, id_threshold)
-
-    # add invalid sequences to the reporting dataframe
-    if len(invalid_ids) > 0:
-        invalid_df = pd.DataFrame({"ID": invalid_ids})
-        invalid_df["passed_initial_qc"] = False
-        invalid_df["aligned"] = False
+        # align sequences if more than 1 sequence passes the initial qc
         if evaluation != "all_invalid":
-            metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
+            # perform alignment with pblat
+            alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
+
+            # parse statistics from file
+            metrics = statistics.nucleotide_identity(query_tmp, alignment_file, id_threshold)
+
+        # add invalid sequences to the reporting dataframe
+        if len(invalid_ids) > 0:
+            invalid_df = pd.DataFrame({"ID": invalid_ids})
+            invalid_df["passed_initial_qc"] = False
+            invalid_df["aligned"] = False
+            if evaluation != "all_invalid":
+                metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
+            else:
+                metrics = invalid_df
+
+        # get reference length for output file
+        with screed.open(reference_in) as seqfile:
+            refseq = [i for i in seqfile][0]
+
+        # store sequences
+        if qi == 0:
+            writer.write_sequences(query_in, metrics, prefix, evaluation, "w")
         else:
-            metrics = invalid_df
-
-    # get reference length for output file
-    with screed.open(reference_in) as seqfile:
-        refseq = [i for i in seqfile][0]
-
-    # store sequences
-    writer.write_sequences(query_in, metrics, prefix, evaluation)
-
-    # store reference data
-    metrics["reference_length"] = len(refseq.sequence)
-    metrics["reference"] = os.path.basename(reference_in)
-    metrics["query"] = os.path.basename(query_in)
-    # remove temporary files
-    if evaluation != "all_invalid":
-        os.remove(alignment_file)
-    os.remove(reference_tmp)
-    os.remove(query_tmp)
-    metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t')
-    print(metrics)
+            writer.write_sequences(query_in, metrics, prefix, evaluation, "a")
+        # store reference data
+        metrics["reference_length"] = len(refseq.sequence)
+        metrics["reference"] = os.path.basename(reference_in)
+        metrics["query"] = os.path.basename(query_in)
+        # remove temporary files
+        if evaluation != "all_invalid":
+            os.remove(alignment_file)
+        os.remove(reference_tmp)
+        os.remove(query_tmp)
+        if qi == 0:
+            metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t')
+        else:
+            metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t',
+                           mode="a", header=False)
+        print(metrics)
     return metrics
 
 
@@ -176,7 +192,7 @@ def main():  # pragma: no cover
     """
     parser = argparse.ArgumentParser(description='Calculate pairwise nucleotide identity.')
     parser.add_argument('-r', '--reference', required=True, help='Reference genome.')
-    parser.add_argument('-q', '--query', required=True, help='Query genome.')
+    parser.add_argument('-q', '--query', required=True, help='Query genome(s).', nargs="+")
     parser.add_argument('-x', '--id_threshold', type=float, default=0.93,
                         help='ACGT nucleotide identity threshold after alignment (percentage). '
                              'A query sequence is reported as valid based on this threshold '
@@ -188,6 +204,7 @@ def main():  # pragma: no cover
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
+
     aligner(args.reference, args.query, args.prefix, args.id_threshold, args.threads)
 
 

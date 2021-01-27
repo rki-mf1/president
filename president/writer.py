@@ -44,7 +44,7 @@ def write_fasta(fileobj, seq, format_sequence=False):
         fileobj.write(f"{seq.sequence}\n")
 
 
-def write_sequences(query, metrics, out_dir, evaluation):
+def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
     """
     Write sequences from the query into valid / invalid FASTA files based on metrics.
 
@@ -69,9 +69,9 @@ def write_sequences(query, metrics, out_dir, evaluation):
         valid_ids = set()
 
     valid_name = os.path.join(os.path.dirname(out_dir), f"{prefix}valid.fasta")
-    valid_fout = open(valid_name, "w")
+    valid_fout = open(valid_name, write_mode)
     invalid_name = os.path.join(os.path.dirname(out_dir), f"{prefix}invalid.fasta")
-    invalid_fout = open(invalid_name, "w")
+    invalid_fout = open(invalid_name, write_mode)
 
     # iterate over query and split into valid / invalid fasta
     with screed.open(query) as seqfile:
