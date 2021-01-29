@@ -35,9 +35,7 @@ import os
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
 from shutil import which
-
 import pandas as pd
-import screed
 
 from president import alignment, __version__, statistics, writer, sequence
 
@@ -92,6 +90,7 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.93,
     if not isinstance(query_in_raw, list):
         query_in_raw = [query_in_raw]
 
+    collect_dfs = []
     for qi, query_in in enumerate(query_in_raw):
         print("##################### Running President ##########################")
         prefix = prefix_in
@@ -122,63 +121,53 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.93,
         # check reference fasta
         statistics.count_reference_sequences(reference_tmp)
 
+        # check query data
+        summary_stats_query = statistics.summarize_query(query_in)
+        statistics.qc_check(reference_tmp, summary_stats_query, id_threshold=id_threshold)
+
         # perform initial sequence check
         query_tmp, evaluation, invalid_ids = \
-            statistics.split_valid_sequences(query_tmp, reference_tmp, id_threshold=id_threshold)
-        # if none of the sequences pass the qc filter, exit.
-        # else just perform the alignment witht he seqs passing qc
-    #    if evaluation == "all_invalid":
-    #        print("None of the sequences can pass the identity threshold. No alignment done.")
-    #        print("Exiting president alignment.")
-    #        sys.exit()
-    #    else:
-    #        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+            statistics.split_valid_sequences(query_tmp, summary_stats_query)
 
         print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
 
         # align sequences if more than 1 sequence passes the initial qc
         if evaluation != "all_invalid":
-            # perform alignment with pblat
             alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
-
             # parse statistics from file
-            metrics = statistics.nucleotide_identity(query_tmp, alignment_file, id_threshold)
-
-        # add invalid sequences to the reporting dataframe
-        if len(invalid_ids) > 0:
-            invalid_df = pd.DataFrame({"ID": invalid_ids})
-            invalid_df["passed_initial_qc"] = False
-            invalid_df["aligned"] = False
-            if evaluation != "all_invalid":
-                metrics = pd.concat([metrics, invalid_df]).reset_index(drop=True)
-            else:
-                metrics = invalid_df
-
-        # get reference length for output file
-        with screed.open(reference_in) as seqfile:
-            refseq = [i for i in seqfile][0]
-
-        # store sequences
-        if qi == 0:
-            writer.write_sequences(query_in, metrics, prefix, evaluation, "w")
+            metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
+                                                     id_threshold)
         else:
-            writer.write_sequences(query_in, metrics, prefix, evaluation, "a")
+            # if no sequences are there to be aligned, create a pseudooutput that looks
+            # exactly as the aligned output
+            metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query)
+        # store sequences
+        writer.write_sequences(query_in, metrics, prefix, evaluation)
+
         # store reference data
-        metrics["reference_length"] = len(refseq.sequence)
-        metrics["reference"] = os.path.basename(reference_in)
-        metrics["query"] = os.path.basename(query_in)
+        metrics["file_in_query"] = os.path.basename(query_in)
+        metrics["file_in_ref"] = os.path.basename(reference_in)
+        metrics = metrics[metrics.columns.sort_values()]
+
+        if qi > 0:
+            metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t',
+                           mode="a", header=False)
+        else:
+            metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t')
+
         # remove temporary files
         if evaluation != "all_invalid":
             os.remove(alignment_file)
-        os.remove(reference_tmp)
+
         os.remove(query_tmp)
-        if qi == 0:
-            metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t')
-        else:
-            metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t',
-                           mode="a", header=False)
+        os.remove(reference_tmp)
         print(metrics)
-    return metrics
+        print(metrics.shape)
+        collect_dfs.append(metrics)
+
+    # if there are more input files to iterate from, concat results
+    metrics_all = pd.concat(collect_dfs)
+    return metrics_all
 
 
 def main():  # pragma: no cover

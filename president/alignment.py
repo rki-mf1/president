@@ -1,6 +1,6 @@
 """Alignment Modules used in president."""
-import tempfile
 import subprocess
+import tempfile
 
 import pandas as pd
 
@@ -58,7 +58,12 @@ def parse_alignment(alignment_file):
                   'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
                   'QStarts', 'TStarts']
         alignments.columns = labels
+
+    except pd.errors.EmptyDataError:
+        print("Error reading pblat output. Perhaps it did not align anything (pandas).")
+        return pd.DataFrame()
+
     except Exception:
-        print("Error reading pblat output. Perhaps it did not align anything.")
-        exit(1)
+        print("Error reading pblat output. Perhaps it did not align anything (exception).")
+        return pd.DataFrame()
     return alignments
