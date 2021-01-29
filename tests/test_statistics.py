@@ -21,7 +21,7 @@ def test_statistics():
 
     qc_stats = statistics.summarize_query(query)
     statistics.qc_check(100, qc_stats, id_threshold=.93)
-    metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.93)
+    metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.9)
 
     exp_ident = 0.95
     exp_ambig_identity = 0.95
@@ -68,7 +68,7 @@ def test_unmapped():
 
     qc_stats = statistics.summarize_query(query)
     statistics.qc_check(29903, qc_stats, id_threshold=.93)
-    metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.93)
+    metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.9)
     metrics = metrics[metrics["qc_post_aligned"]]
 
     exp_IDS = np.array(["FAO96286_barcode67/ARTIC/medaka MN908947.3",
@@ -138,7 +138,7 @@ def test_repeated_pblat():
 
     qc_stats = statistics.summarize_query(query)
     statistics.qc_check(29903, qc_stats, id_threshold=.93)
-    metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.93)
+    metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.9)
 
     exp_invalid = [False, True, True, True, True]
     exp_ident = [0.4063, 0.9953, 0.9952, 0.9947, 0.9796]
@@ -193,7 +193,7 @@ def test_split_valid_sequences_uneven():
     query = os.path.join(fixtures_loc, "101bp_5N_5MM_5G_query_3seqs.fasta")
 
     # mixed
-    # 0.93 * 101 = 93.93
+    # 0.9 * 101 = 90.9
     # 0.94 * 101 = 94.94
     # 0.95 * 101 = 95.949
     # we have 101 - 5 = 96 = 96 / 101 = 0.95

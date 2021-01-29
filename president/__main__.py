@@ -6,7 +6,7 @@ pairwise nucleotide identity with respect to the reference sequence.
 Usage:
 -----
 president --query tiny_test.masked_consensus.fasta \
-    --reference NC_045512.2.fasta -x 0.93 -p 8 -o report.tsv
+    --reference NC_045512.2.fasta -x 0.9 -p output/report -t 4
 
 Notes:
 -----
@@ -60,7 +60,7 @@ def is_available(name="pblat"):
         raise ValueError(f'{name} not on PATH or marked as executable.')
 
 
-def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.93,
+def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.9,
             threads=4):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
@@ -74,7 +74,7 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.93,
     prefix_in : str
         Prefix where to store the results.
     id_threshold : float, optional
-        Identity threshold after aligment that must be achieved. The default is 0.93.
+        Identity threshold after aligment that must be achieved. The default is 0.9.
     threads : int, optional
         Number of threads to use. The default is 4.
 
@@ -182,10 +182,10 @@ def main():  # pragma: no cover
     parser = argparse.ArgumentParser(description='Calculate pairwise nucleotide identity.')
     parser.add_argument('-r', '--reference', required=True, help='Reference genome.')
     parser.add_argument('-q', '--query', required=True, help='Query genome(s).', nargs="+")
-    parser.add_argument('-x', '--id_threshold', type=float, default=0.93,
+    parser.add_argument('-x', '--id_threshold', type=float, default=0.9,
                         help='ACGT nucleotide identity threshold after alignment (percentage). '
                              'A query sequence is reported as valid based on this threshold '
-                             '(def: 0.93)')
+                             '(def: 0.9)')
     parser.add_argument('-t', '--threads', type=int, default=4,
                         help='Number of threads to use for pblat.')
     parser.add_argument('-p', '--prefix', required=True,

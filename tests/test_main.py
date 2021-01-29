@@ -30,7 +30,7 @@ def test_empty_alignment():
     # has only failing sequence
     reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
-    president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.93,
+    president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.9,
                               threads=4, prefix_in=tmpfile)
     os.remove(tmpfile)
     assert not president_df["qc_all_valid"].iloc[0]
@@ -51,7 +51,7 @@ def test_same_format():
     # has only failing sequence
     reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
-    president_df2 = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.93,
+    president_df2 = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.9,
                                threads=4, prefix_in=tmpfile)
     os.remove(tmpfile)
 
