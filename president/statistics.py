@@ -74,7 +74,7 @@ def summarize_query(query):
     return pd.DataFrame(statistics_ar)
 
 
-def qc_check(reference, query_stats, id_threshold=0.93):
+def qc_check(reference, query_stats, id_threshold=0.9):
     """
     Perform logic checks on already computed qc metrics (length, Ns).
 
@@ -86,7 +86,7 @@ def qc_check(reference, query_stats, id_threshold=0.93):
     query_stats : df
         dataframe with already computed qc metrics for the sequences, see summarize_query.
     id_threshold : float, optional
-        Identity threshold for assigning valid filters. The default is 0.93.
+        Identity threshold for assigning valid filters. The default is 0.9.
 
     Returns
     -------
@@ -120,7 +120,7 @@ def qc_check(reference, query_stats, id_threshold=0.93):
         query_stats["qc_valid_length"]
 
 
-def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.93):
+def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9):
     """Calculate nucleotide ident from a 2-sequence MSA.
 
     The query can consists of a multi-fasta file.
@@ -222,7 +222,7 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.93):
     return president_df
 
 
-def estimate_max_invalid(reference, id_threshold=0.93):
+def estimate_max_invalid(reference, id_threshold=0.9):
     """
     Estimate the lower bound (floor) of the sequence length and id_threshold in number of bases.
 
@@ -231,7 +231,7 @@ def estimate_max_invalid(reference, id_threshold=0.93):
     reference : str
         location of FASTA reference.
     id_threshold : float, optional
-        Identity threshold for basepairs matching between query and reference. The default is 0.93.
+        Identity threshold for basepairs matching between query and reference. The default is 0.9.
 
     Returns
     -------

@@ -38,7 +38,7 @@ a [reference](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/mast
 Run the alignment with the following command and identity of ACGT bases of 93%. Note that multiple fasta sequences are allowed to be present in the query but **not** in the reference FASTA.
 
 ```
-president -q NC_045512.2.20mis.fasta -r NC_045512.2.fasta -x 0.93 -t 4 -p output/test
+president -q NC_045512.2.20mis.fasta -r NC_045512.2.fasta -x 0.9 -t 4 -p output/test
 ```
 
 
@@ -49,7 +49,7 @@ The script provides:
 * a FASTA file with _valid_ sequences
 * a FASTA file with _invalid_ sequences
 
-The separation between the _valid_ and _invalid_ bin is mainly based on the defined identity threshold (`-x`, default: 0.93) and further sanity checks (non-IUPAC characters, amount of 'N's and query length that cause sequence identity to drop below `-x`).
+The separation between the _valid_ and _invalid_ bin is mainly based on the defined identity threshold (`-x`, default: 0.9) and further sanity checks (non-IUPAC characters, amount of 'N's and query length that cause sequence identity to drop below `-x`).
 
 An example from the call described above can be found [online](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/master/examples/report.csv).
 
