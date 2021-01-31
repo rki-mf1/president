@@ -119,17 +119,26 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.9,
         query_tmp = sequence.preprocess(query_in)
 
         # check reference fasta
-        statistics.count_reference_sequences(reference_tmp)
+        _ = statistics.count_sequences(reference_tmp)
+        query_valid = statistics.count_sequences(query_tmp, "query")
 
         # check query data
-        summary_stats_query = statistics.summarize_query(query_in)
-        statistics.qc_check(reference_tmp, summary_stats_query, id_threshold=id_threshold)
+        if query_valid:
+            summary_stats_query = statistics.summarize_query(query_in)
+            statistics.qc_check(reference_tmp, summary_stats_query, id_threshold=id_threshold)
 
-        # perform initial sequence check
-        query_tmp, evaluation, invalid_ids = \
-            statistics.split_valid_sequences(query_tmp, summary_stats_query)
+            # perform initial sequence check
+            query_tmp, evaluation, invalid_ids = \
+                statistics.split_valid_sequences(query_tmp, summary_stats_query)
 
-        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+            print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+        else:
+            # make sure mock dataframe looks like regular one
+            evaluation = "all_invalid"
+            summary_stats_query = pd.DataFrame(writer.init_metrics(0))
+            summary_stats_query = \
+                summary_stats_query.assign(**{'qc_all_valid': [], 'qc_valid_length': [],
+                                              'qc_valid_nucleotides': [], 'qc_valid_number_n': []})
 
         # align sequences if more than 1 sequence passes the initial qc
         if evaluation != "all_invalid":
@@ -137,10 +146,12 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.9,
             # parse statistics from file
             metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
                                                      id_threshold)
+            metrics["qc_is_empty_query"] = False
         else:
             # if no sequences are there to be aligned, create a pseudooutput that looks
             # exactly as the aligned output
             metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query)
+            metrics["qc_is_empty_query"] = True
         # store sequences
         writer.write_sequences(query_in, metrics, prefix, evaluation)
 

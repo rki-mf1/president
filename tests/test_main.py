@@ -22,7 +22,7 @@ def test_aligner_combined():
     president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.0,
                               threads=4, prefix_in=tmpfile)
     os.remove(tmpfile)
-    assert president_df.shape == (19, 26)
+    assert president_df.shape == (19, 27)
 
 
 def test_empty_alignment():
@@ -34,7 +34,18 @@ def test_empty_alignment():
                               threads=4, prefix_in=tmpfile)
     os.remove(tmpfile)
     assert not president_df["qc_all_valid"].iloc[0]
-    assert president_df.shape == (1, 26)
+    assert president_df.shape == (1, 27)
+
+
+def test_empty_fasta():
+    query = os.path.join(fixtures_loc, "empty.fasta")
+    # has only failing sequence
+    reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
+    tmpfile = tempfile.mkstemp(suffix=".csv")[1]
+    president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.9,
+                              threads=4, prefix_in=tmpfile)
+    os.remove(tmpfile)
+    assert president_df.shape == (1, 27)
 
 
 def test_same_format():

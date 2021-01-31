@@ -244,25 +244,40 @@ def estimate_max_invalid(reference, id_threshold=0.9):
     return length_ref - np.ceil(id_threshold * length_ref)
 
 
-def count_reference_sequences(reference):
+def count_sequences(fasta_file, kind="reference"):
     """
     Test the number of reference sequences and check if # entries is equal to 1.
 
     Parameters
     ----------
-    reference : str
+    fasta_file : str
         location of FASTA reference.
+    kind: str,
+          Parameter indicating if reference or query is used as input. (default: reference)
 
+    Returns:
+    -------
+    bool, (1 if the input is valid, 0 if the input is invalid)
     """
     # read reference file
-    with screed.open(reference) as seqfile:
-        nrefs = np.sum([1 for i in seqfile])
+    with screed.open(fasta_file) as seqfile:
+        nseqs = int(np.sum([1 for i in seqfile]))
 
-    if nrefs == 1:
+    # valid, only 1 file
+    if nseqs == 1:
         print("Number of references is equal to one (qc passed)")
+        return 1
 
-    elif (nrefs == 0) | (nrefs) > 1:
-        raise ValueError(f"Number of reference sequences ({nrefs}) is not equal to 1.")
+    elif (nseqs == 0) | (nseqs > 1):
+        # if reference, we exactly need one file
+        if kind == "reference":
+            raise ValueError(f"Number of reference sequences ({nseqs}) is not equal to 1.")
+        else:
+            # if query, only 0 seqs is bad
+            if nseqs == 0:
+                return 0
+            else:
+                return 1
 
 
 def split_valid_sequences(query, query_stats):

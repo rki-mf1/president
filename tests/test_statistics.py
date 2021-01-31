@@ -213,12 +213,12 @@ def test_number_reference_check_fail():
     reference = os.path.join(fixtures_loc, "100bp_multi.fasta")
 
     with pytest.raises(ValueError):
-        statistics.count_reference_sequences(reference)
+        statistics.count_sequences(reference)
 
 
 def test_number_reference_check_pass():
     reference = os.path.join(fixtures_loc, "100bp_0N_sample_reference.fasta")
-    statistics.count_reference_sequences(reference)
+    statistics.count_sequences(reference)
     assert True
 
 
