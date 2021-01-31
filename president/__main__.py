@@ -60,7 +60,7 @@ def is_available(name="pblat"):
         raise ValueError(f'{name} not on PATH or marked as executable.')
 
 
-def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.9,
+def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.9,
             threads=4):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
@@ -71,8 +71,10 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.9,
         reference FASTA location
     query_in_raw : str
         query FASTA location.
-    prefix_in : str
-        Prefix where to store the results.
+    path_out : str
+        Path to be used to store the results.
+    prefix_out : str
+        File prefix to be used for each output file.
     id_threshold : float, optional
         Identity threshold after aligment that must be achieved. The default is 0.9.
     threads : int, optional
@@ -93,26 +95,18 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.9,
     collect_dfs = []
     for qi, query_in in enumerate(query_in_raw):
         print("##################### Running President ##########################")
-        prefix = prefix_in
+        prefix = prefix_out
         print(f"Running file: {query_in}")
         assert os.path.isfile(query_in)
 
         # handle path / prefix input
-        out_dir = os.path.dirname(os.path.abspath(prefix))
-        # dir is not created when prefix ends with /
-        if prefix.endswith('/'):
-            out_dir = prefix
-
-        if prefix != "" and not prefix.endswith('/'):
-            prefix += "_"
-
-        file_prefix = os.path.basename(prefix)
+        out_dir = os.path.abspath(path_out)
         if not os.path.exists(out_dir):
             print("Creating output directory...")
             os.makedirs(out_dir, exist_ok=True)
 
         print(f"Writing files to: {out_dir}")
-        print(f"Using the prefix: {file_prefix}_* to store results.")
+        print(f"Using the prefix: {prefix}* to store results.")
 
         # remove white spaces from fasta files
         reference_tmp = sequence.preprocess(reference_in)
@@ -142,7 +136,7 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.9,
             # exactly as the aligned output
             metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query)
         # store sequences
-        writer.write_sequences(query_in, metrics, prefix, evaluation)
+        writer.write_sequences(query_in, metrics, os.path.join(out_dir, f"{prefix}"), evaluation)
 
         # store reference data
         metrics["file_in_query"] = os.path.basename(query_in)
@@ -150,10 +144,10 @@ def aligner(reference_in, query_in_raw, prefix_in, id_threshold=0.9,
         metrics = metrics[metrics.columns.sort_values()]
 
         if qi > 0:
-            metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t',
+            metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t',
                            mode="a", header=False)
         else:
-            metrics.to_csv(os.path.join(out_dir, f"{file_prefix}report.tsv"), index=False, sep='\t')
+            metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t')
 
         # remove temporary files
         if evaluation != "all_invalid":
@@ -188,13 +182,15 @@ def main():  # pragma: no cover
                              '(def: 0.9)')
     parser.add_argument('-t', '--threads', type=int, default=4,
                         help='Number of threads to use for pblat.')
-    parser.add_argument('-p', '--prefix', required=True,
-                        help='Prefix to be used to store results and FASTA files.')
+    parser.add_argument('-p', '--path', required=True,
+                        help='Path to be used to store results and FASTA files.')
+    parser.add_argument('-f', '--prefix', required=False, default="",
+                        help='Prefix to be used t store results in the path')
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
-    aligner(args.reference, args.query, args.prefix, args.id_threshold, args.threads)
+    aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold, args.threads)
 
 
 if __name__ == "__main__":
