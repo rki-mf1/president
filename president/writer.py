@@ -44,6 +44,7 @@ def init_metrics(n_seqs, extend_cols=False, metrics_df=None):
              "ACGT Nucleotide identity (ignoring non-ACGTNs)", "Matches", "Mismatches",
              "qc_post_align_pass_threshold", "qc_post_aligned",
              "qc_post_aligned_all_valid", "reference_name", "length_reference"]
+
         for coli in needed_cols:
             if "qc_post" in coli:
                 metrics_df[coli] = [False]
