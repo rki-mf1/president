@@ -96,6 +96,15 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
 
     collect_dfs = []
     for qi, query_in in enumerate(query_in_raw):
+        # init files
+        if qi == 0:
+            write_mode = "w"
+            header = True
+        else:
+            # append files
+            write_mode = "a"
+            header = False
+
         print("##################### Running President ##########################")
         prefix = prefix_out
         print(f"Running file: {query_in}")
@@ -150,18 +159,16 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
             metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query)
             metrics["qc_is_empty_query"] = True
         # store sequences
-        writer.write_sequences(query_in, metrics, os.path.join(out_dir, f"{prefix}"), evaluation)
+        writer.write_sequences(query_in, metrics, os.path.join(out_dir, f"{prefix}"), evaluation,
+                               write_mode=write_mode)
 
         # store reference data
         metrics["file_in_query"] = os.path.basename(query_in)
         metrics["file_in_ref"] = os.path.basename(reference_in)
         metrics = metrics[metrics.columns.sort_values()]
 
-        if qi > 0:
-            metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t',
-                           mode="a", header=False)
-        else:
-            metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t')
+        metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t',
+                       mode=write_mode, header=header)
 
         # remove temporary files
         if evaluation != "all_invalid":

@@ -282,7 +282,7 @@ def count_sequences(fasta_file, kind="reference"):
                 return 1
 
 
-def split_valid_sequences(query, query_stats):
+def split_valid_sequences(query, query_stats, write_mode="w"):
     """
     Perform simple qc checks on the query sequence and discard if input does not met qc.
 
@@ -295,7 +295,8 @@ def split_valid_sequences(query, query_stats):
         location of FASTA query.
     query_stats : df
         Dataframe with qc checks of the query sequences.
-
+    write_mode: str,
+                Append or write FASTA sequences from scratch.
     Returns
     -------
     triple,
@@ -320,11 +321,11 @@ def split_valid_sequences(query, query_stats):
 
         # write valid sequences
         valid_loc = tempfile.mkstemp(suffix="_valid.fasta")[1]
-        valid_fout = open(valid_loc, "w")
+        valid_fout = open(valid_loc, write_mode)
 
         # write invalid sequences
         invalid_loc = tempfile.mkstemp(suffix="_invalid.fasta")[1]
-        invalid_fout = open(invalid_loc, "w")
+        invalid_fout = open(invalid_loc, write_mode)
 
         # iterate over sequence again and split into valid / invalid
         with screed.open(query) as seqfile:
