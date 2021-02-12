@@ -61,7 +61,7 @@ def is_available(name="pblat"):
 
 
 def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.9,
-            threads=4):  # pragma: no cover
+            threads=4, n_threshold=0.05):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
 
@@ -121,7 +121,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         # check query data
         if query_valid:
             summary_stats_query = statistics.summarize_query(query_in)
-            statistics.qc_check(reference_tmp, summary_stats_query, id_threshold=id_threshold)
+            statistics.qc_check(reference_tmp, summary_stats_query, id_threshold=id_threshold,
+                                n_threshold=n_threshold)
 
             # perform initial sequence check
             query_tmp, evaluation, invalid_ids = \
@@ -206,8 +207,8 @@ def main():  # pragma: no cover
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
-    aligner(args.reference, args.query, args.prefix, id_threshold=args.id_threshold,
-            n_threshold=args.n_threshold, threads=args.threads)
+    aligner(args.reference, args.query, args.path, prefix_out=args.prefix,
+            id_threshold=args.id_threshold, n_threshold=args.n_threshold, threads=args.threads)
 
 
 if __name__ == "__main__":

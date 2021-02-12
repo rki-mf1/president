@@ -44,8 +44,9 @@ def test_empty_fasta():
     # has only failing sequence
     reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
-    president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.9,
-                              threads=4, prefix_in=tmpfile)
+    tmppath = os.path.splitext(tmpfile)[0]
+    president_df = pm.aligner(reference_in=reference, query_in_raw=query, path_out=tmppath,
+                              id_threshold=0.9, threads=4)
     os.remove(tmpfile)
     assert president_df.shape == (1, 27)
 
