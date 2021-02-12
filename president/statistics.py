@@ -69,12 +69,12 @@ def summarize_query(query):
             statistics_ar["non_upac_bases"][idx] = nonupac_ct
             statistics_ar["N_bases"][idx] = Ns
             statistics_ar["length_query"][idx] = len(seq.rstrip())
-            statistics_ar["Ngap"][idx] = get_largest_N_gap(seq)
+            statistics_ar["LongestNGap"][idx] = get_largest_N_gap(seq)
 
     return pd.DataFrame(statistics_ar)
 
 
-def qc_check(reference, query_stats, id_threshold=0.9):
+def qc_check(reference, query_stats, id_threshold=0.9, n_threshold=0.05):
     """
     Perform logic checks on already computed qc metrics (length, Ns).
 
@@ -85,8 +85,12 @@ def qc_check(reference, query_stats, id_threshold=0.9):
 
     query_stats : df
         dataframe with already computed qc metrics for the sequences, see summarize_query.
+
     id_threshold : float, optional
         Identity threshold for assigning valid filters. The default is 0.9.
+
+    n_threshold: float, optional
+        Percentage of allowed Ns, sequences with hier N% will be rejected
 
     Returns
     -------
@@ -106,18 +110,16 @@ def qc_check(reference, query_stats, id_threshold=0.9):
     # valid characters?
     query_stats["qc_valid_nucleotides"] = query_stats["non_upac_bases"] == 0
 
-    # compute if N/length threshold is reached
-    # round, generously to avoid border line cases
-    query_stats["qc_valid_number_n"] = \
-        ((length_ref - query_stats["N_bases"]) / length_ref) >= id_threshold
+    # check if number of Ns are below threshold
+    query_stats["qc_valid_pass_nthreshold"] = \
+        (query_stats["N_bases"] / query_stats["length_query"]) <= n_threshold
 
     # take the lower bound here (floor)
     query_stats["qc_valid_length"] = query_stats["length_query"] >= \
         np.floor(length_ref * id_threshold)
 
     query_stats["qc_all_valid"] = query_stats["qc_valid_nucleotides"] & \
-        query_stats["qc_valid_number_n"] & \
-        query_stats["qc_valid_length"]
+        query_stats["qc_valid_length"] & query_stats["qc_valid_pass_nthreshold"]
 
 
 def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9):

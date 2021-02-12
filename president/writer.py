@@ -34,7 +34,7 @@ def init_metrics(n_seqs, extend_cols=False, metrics_df=None):
                                  ("non_upac_bases", np.uint32),
                                  ("N_bases", np.uint32),
                                  ("length_query", np.uint32),
-                                 ("Ngap", np.uint32)])
+                                 ("LongestNGap", np.uint32)])
     stats_ar = np.zeros(n_seqs, dtype=statistic_values)
 
     if extend_cols:
