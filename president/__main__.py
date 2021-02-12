@@ -77,6 +77,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         File prefix to be used for each output file.
     id_threshold : float, optional
         Identity threshold after aligment that must be achieved. The default is 0.9.
+    n_threshold: float, optional
+        Percentage of allowed Ns, sequences with hier N% will be rejected
     threads : int, optional
         Number of threads to use. The default is 4.
 
@@ -191,6 +193,9 @@ def main():  # pragma: no cover
                         help='ACGT nucleotide identity threshold after alignment (percentage). '
                              'A query sequence is reported as valid based on this threshold '
                              '(def: 0.9)')
+    parser.add_argument('-n', '--n_threshold', type=float, default=0.05,
+                        help='A query sequence is reported as valid, if the percentage of Ns '
+                             'is smaller or equal the threshold (def: 0.05)')
     parser.add_argument('-t', '--threads', type=int, default=4,
                         help='Number of threads to use for pblat.')
     parser.add_argument('-p', '--path', required=True,
@@ -201,7 +206,8 @@ def main():  # pragma: no cover
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
-    aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold, args.threads)
+    aligner(args.reference, args.query, args.prefix, id_threshold=args.id_threshold,
+            n_threshold=args.n_threshold, threads=args.threads)
 
 
 if __name__ == "__main__":

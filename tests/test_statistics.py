@@ -15,6 +15,18 @@ from president import statistics, alignment
 fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
 
 
+def test_statistics_nthreshold():
+    query = os.path.join(fixtures_loc, "100bp_5N_05MM_sample_query.fasta")
+
+    qc_stats_pass = statistics.summarize_query(query)
+    statistics.qc_check(100, qc_stats_pass, id_threshold=.93, n_threshold=0.05)
+
+    qc_stats_fail = statistics.summarize_query(query)
+    statistics.qc_check(100, qc_stats_fail, id_threshold=.93, n_threshold=0.04)
+    assert qc_stats_pass["qc_valid_pass_nthreshold"].iloc[0]
+    assert not qc_stats_fail["qc_valid_pass_nthreshold"].iloc[0]
+
+
 def test_statistics():
     alignment_f = os.path.join(fixtures_loc, "100bp_pblat_results.txt")
     query = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
@@ -138,7 +150,7 @@ def test_repeated_pblat():
 
     qc_stats = statistics.summarize_query(query)
     statistics.qc_check(29903, qc_stats, id_threshold=.93)
-    metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.9)
+    metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.05)
 
     exp_invalid = [False, True, True, True, True]
     exp_ident = [0.4063, 0.9953, 0.9952, 0.9947, 0.9796]
@@ -161,21 +173,24 @@ def test_repeated_pblat():
 
 def test_split_valid_sequences():
     reference = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
+    # this query has 5N / 10N with 5MM to the reference
     query = os.path.join(fixtures_loc, "100bp_5N_05MM_sample_query_multi.fasta")
 
     # all good
+    # no id threshold
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(reference, qc_stats, id_threshold=0.0)
+    statistics.qc_check(reference, qc_stats, id_threshold=0.0, n_threshold=1.0)
     outfile1, case1, ids1 = statistics.split_valid_sequences(query, qc_stats)
 
     # all invalid
+    # > 5 MM
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(reference, qc_stats, id_threshold=1)
+    statistics.qc_check(reference, qc_stats, id_threshold=0.95, n_threshold=0.0)
     outfile2, case2, ids2 = statistics.split_valid_sequences(query, qc_stats)
 
     # mixed
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(reference, qc_stats, id_threshold=.95)
+    statistics.qc_check(reference, qc_stats, id_threshold=.95, n_threshold=0.05)
     outfile3, case3, ids3 = statistics.split_valid_sequences(query, qc_stats)
 
     assert case1 == "all_valid"
@@ -198,11 +213,11 @@ def test_split_valid_sequences_uneven():
     # 0.95 * 101 = 95.949
     # we have 101 - 5 = 96 = 96 / 101 = 0.95
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(reference, qc_stats, id_threshold=0.95)
+    statistics.qc_check(reference, qc_stats, id_threshold=0.95, n_threshold=1.0)
     outfile1, case1, ids1 = statistics.split_valid_sequences(query, qc_stats)
 
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(reference, qc_stats, id_threshold=0.96)
+    statistics.qc_check(reference, qc_stats, id_threshold=0.96, n_threshold=0.04)
     outfile2, case2, ids2 = statistics.split_valid_sequences(query, qc_stats)
 
     assert case1 == "all_valid"
