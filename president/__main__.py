@@ -61,7 +61,7 @@ def is_available(name="pblat"):
 
 
 def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.9,
-            threads=4):  # pragma: no cover
+            threads=4, store_alignment = False):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
 
@@ -79,7 +79,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         Identity threshold after aligment that must be achieved. The default is 0.9.
     threads : int, optional
         Number of threads to use. The default is 4.
-
+    store_alignment : bool, optional
+        Should we store the results of the alignements in the qc metrics table? default is False
     Returns
     -------
     datframe,
@@ -139,7 +140,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
             alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
             # parse statistics from file
             metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
-                                                     id_threshold)
+                                                     id_threshold, store_alignment)
             metrics["qc_is_empty_query"] = False
         else:
             # if no sequences are there to be aligned, create a pseudooutput that looks
@@ -197,11 +198,13 @@ def main():  # pragma: no cover
                         help='Path to be used to store results and FASTA files.')
     parser.add_argument('-f', '--prefix', required=False, default="",
                         help='Prefix to be used t store results in the path')
+    parser.add_argument('-a', '--store_alignment', required=False, action="store_true",
+                        help='add columns for the alignment of the query to the reference (PSL format)')
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
-    aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold, args.threads)
+    aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold, args.threads, args.store_alignment)
 
 
 if __name__ == "__main__":
