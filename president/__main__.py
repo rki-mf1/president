@@ -152,7 +152,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
                 with open(fname) as infile:
                     for line in infile:
                         outfile.write(line)
-    query_in_raw = [concat]
+        query_in_raw = [concat]
 
     for qi, query_in in enumerate(query_in_raw):
         # init files
