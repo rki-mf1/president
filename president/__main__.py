@@ -39,6 +39,7 @@ import pandas as pd
 
 from president import alignment, __version__, statistics, writer, sequence
 
+import tempfile
 import resource
 import fcntl
 import os
@@ -117,6 +118,18 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         query_in_raw = [query_in_raw]
 
     collect_dfs = []
+
+    # Fix for error "Too many open files" by concatenating files
+    # I am assuming the IDs are different in all the files
+    _, concat = tempfile.mkstemp()
+    if len(query_in_raw) > 1:
+        with open(concat, 'w') as outfile:
+            for fname in query_in_raw:
+                with open(fname) as infile:
+                    for line in infile:
+                        outfile.write(line)
+    query_in_raw = [concat]
+
     for qi, query_in in enumerate(query_in_raw):
         # init files
         if qi == 0:
@@ -202,6 +215,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
 
         os.remove(query_tmp)
         os.remove(reference_tmp)
+        os.remove(concat)
         print(metrics)
         print(metrics.shape)
         collect_dfs.append(metrics)
