@@ -337,6 +337,10 @@ def split_valid_sequences(query, query_stats, write_mode="w"):
                 else:
                     seqwriter = invalid_fout
                 writer.write_fasta(seqwriter, qry, format_sequence=True)
+
+        # close files
+        invalid_fout.close()
+        valid_fout.close()
         return valid_loc, "mixed", invalid_identifier
 
 

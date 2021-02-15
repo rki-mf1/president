@@ -39,6 +39,28 @@ import pandas as pd
 
 from president import alignment, __version__, statistics, writer, sequence
 
+import resource
+import fcntl
+import os
+
+def get_open_fds():
+    fds = []
+    soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+    for fd in range(0, soft):
+        try:
+            flags = fcntl.fcntl(fd, fcntl.F_GETFD)
+        except IOError:
+            continue
+        fds.append(fd)
+    return fds
+
+def get_file_names_from_file_number(fds):
+    names = []
+    for fd in fds:
+        names.append(os.readlink('/proc/self/fd/%d' % fd))
+    return names
+
+
 
 def is_available(name="pblat"):
     """
@@ -126,6 +148,10 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         # check reference fasta
         _ = statistics.count_sequences(reference_tmp)
         query_valid = statistics.count_sequences(query_tmp, "query")
+
+        fds = get_open_fds()
+        print(get_file_names_from_file_number(fds))
+        print(len(get_file_names_from_file_number(fds)))
 
         # check query data
         if query_valid:
