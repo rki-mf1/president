@@ -1,7 +1,7 @@
 """Alignment Modules used in president."""
 import subprocess
 import tempfile
-import os
+# import os
 
 import pandas as pd
 
@@ -38,7 +38,7 @@ def pblat(threads, reference, query, verbose=0):
     print(out)
     print(err)
 
-    #_ = subprocess.check_output(cmd, shell=True)
+    # _ = subprocess.check_output(cmd, shell=True)
     print('Finished pblat.')
     return alignments
 

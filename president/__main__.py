@@ -42,25 +42,49 @@ from president import alignment, __version__, statistics, writer, sequence
 import tempfile
 import resource
 import fcntl
-import os
+
 
 def get_open_fds():
+    """
+    I am not sure what this function does :).
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
     fds = []
     soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
     for fd in range(0, soft):
         try:
             flags = fcntl.fcntl(fd, fcntl.F_GETFD)
+            print(flags)
         except IOError:
             continue
         fds.append(fd)
     return fds
 
+
 def get_file_names_from_file_number(fds):
+    """
+    I am not sure what this function does either :).
+
+    Parameters
+    ----------
+    fds : array
+        description of parameter.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    """
     names = []
     for fd in fds:
         names.append(os.readlink('/proc/self/fd/%d' % fd))
     return names
-
 
 
 def is_available(name="pblat"):
