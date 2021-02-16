@@ -61,7 +61,7 @@ def preprocess(multifasta, suffix):
                     # needs to be undone later in the code
                     if len(line) > 0 and line.startswith('>'):
                         # Append filename to sequence ID
-                        header = line.replace(" ", "%space%") + ":" + os.path.basename(fasta)
+                        header = str(line + ":" + os.path.basename(fasta)).replace(" ", "%space%")
                         fout.write(header + "\n")
                     else:
                         # convert sequence to upper case
