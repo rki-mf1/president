@@ -34,7 +34,7 @@ def preprocess(multifasta, suffix):
     Parameters
     ----------
     fasta : str/[str]
-        FASTA file(s) to remove white spaces.
+        FASTA file(s) to preprocess.
     suffix : str
         Suffix for the temporary output file.
 
