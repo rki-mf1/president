@@ -39,53 +39,6 @@ import pandas as pd
 
 from president import alignment, __version__, statistics, writer, sequence
 
-import tempfile
-import resource
-import fcntl
-
-
-def get_open_fds():
-    """
-    I am not sure what this function does :).
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-
-    """
-    fds = []
-    soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-    for fd in range(0, soft):
-        try:
-            flags = fcntl.fcntl(fd, fcntl.F_GETFD)
-            print(flags)
-        except IOError:
-            continue
-        fds.append(fd)
-    return fds
-
-
-def get_file_names_from_file_number(fds):
-    """
-    I am not sure what this function does either :).
-
-    Parameters
-    ----------
-    fds : array
-        description of parameter.
-
-    Returns
-    -------
-    TYPE
-        DESCRIPTION.
-
-    """
-    names = []
-    for fd in fds:
-        names.append(os.readlink('/proc/self/fd/%d' % fd))
-    return names
-
 
 def is_available(name="pblat"):
     """
@@ -136,113 +89,89 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
     """
     # Files exist?
     assert os.path.isfile(reference_in)
-    print(query_in_raw)
     # make sure input is iterable
     if not isinstance(query_in_raw, list):
         query_in_raw = [query_in_raw]
 
     collect_dfs = []
 
-    # Fix for error "Too many open files" by concatenating files
-    # I am assuming the IDs are different in all the files
-    _, concat = tempfile.mkstemp()
-    if len(query_in_raw) > 1:
-        with open(concat, 'w') as outfile:
-            for fname in query_in_raw:
-                with open(fname) as infile:
-                    for line in infile:
-                        outfile.write(line)
-        query_in_raw = [concat]
+    print("##################### Running President ##########################")
+    # preprocess fasta files
+    query_tmp = sequence.preprocess(query_in_raw, "_query.fasta")
+    reference_tmp = sequence.preprocess(reference_in, "_reference.fasta")
 
-    for qi, query_in in enumerate(query_in_raw):
-        # init files
-        if qi == 0:
-            write_mode = "w"
-            header = True
-        else:
-            # append files
-            write_mode = "a"
-            header = False
+    write_mode = "w"
+    header = True
 
-        print("##################### Running President ##########################")
-        prefix = prefix_out
-        print(f"Running file: {query_in}")
-        assert os.path.isfile(query_in)
+    prefix = prefix_out
+    print(f"Running file: {query_tmp}")
+    assert os.path.isfile(query_tmp)
 
-        # handle path / prefix input
-        out_dir = os.path.abspath(path_out)
-        if not os.path.exists(out_dir):
-            print("Creating output directory...")
-            os.makedirs(out_dir, exist_ok=True)
+    # handle path / prefix input
+    out_dir = os.path.abspath(path_out)
+    if not os.path.exists(out_dir):
+        print("Creating output directory...")
+        os.makedirs(out_dir, exist_ok=True)
 
-        print(f"Writing files to: {out_dir}")
-        print(f"Using the prefix: {prefix}* to store results.")
+    print(f"Writing files to: {out_dir}")
+    print(f"Using the prefix: {prefix}* to store results.")
 
-        # remove white spaces from fasta files
-        reference_tmp = sequence.preprocess(reference_in)
-        query_tmp = sequence.preprocess(query_in)
+    # check reference fasta
+    _ = statistics.count_sequences(reference_tmp)
+    query_valid = statistics.count_sequences(query_tmp, "query")
 
-        # check reference fasta
-        _ = statistics.count_sequences(reference_tmp)
-        query_valid = statistics.count_sequences(query_tmp, "query")
+    # check query data
+    if query_valid:
+        summary_stats_query = statistics.summarize_query(query_tmp)
+        statistics.qc_check(reference_tmp, summary_stats_query, id_threshold=id_threshold,
+                            n_threshold=n_threshold)
 
-        fds = get_open_fds()
-        print(get_file_names_from_file_number(fds))
-        print(len(get_file_names_from_file_number(fds)))
+        # perform initial sequence check
+        query_tmp, evaluation, invalid_ids = \
+            statistics.split_valid_sequences(query_tmp, summary_stats_query)
 
-        # check query data
-        if query_valid:
-            summary_stats_query = statistics.summarize_query(query_in)
-            statistics.qc_check(reference_tmp, summary_stats_query, id_threshold=id_threshold,
-                                n_threshold=n_threshold)
+        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+    else:
+        # make sure mock dataframe looks like regular one
+        evaluation = "all_invalid"
+        summary_stats_query = pd.DataFrame(writer.init_metrics(0))
+        summary_stats_query = \
+            summary_stats_query.assign(**{'qc_all_valid': [], 'qc_valid_length': [],
+                                          'qc_valid_nucleotides': [], 'qc_valid_number_n': []})
 
-            # perform initial sequence check
-            query_tmp, evaluation, invalid_ids = \
-                statistics.split_valid_sequences(query_tmp, summary_stats_query)
+    # align sequences if more than 1 sequence passes the initial qc
+    if evaluation != "all_invalid":
+        alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
+        # parse statistics from file
+        metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
+                                                 id_threshold)
+        metrics["qc_is_empty_query"] = False
+    else:
+        # if no sequences are there to be aligned, create a pseudooutput that looks
+        # exactly as the aligned output
+        metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query)
+        metrics["qc_is_empty_query"] = True
+    # store sequences
+    writer.write_sequences(query_tmp, metrics, os.path.join(out_dir, f"{prefix}"), evaluation,
+                           write_mode=write_mode)
 
-            print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
-        else:
-            # make sure mock dataframe looks like regular one
-            evaluation = "all_invalid"
-            summary_stats_query = pd.DataFrame(writer.init_metrics(0))
-            summary_stats_query = \
-                summary_stats_query.assign(**{'qc_all_valid': [], 'qc_valid_length': [],
-                                              'qc_valid_nucleotides': [], 'qc_valid_number_n': []})
+    # store reference data
+    metrics["file_in_query"] = os.path.basename(query_tmp)
+    metrics["file_in_ref"] = os.path.basename(reference_in)
+    metrics = metrics[metrics.columns.sort_values()]
 
-        # align sequences if more than 1 sequence passes the initial qc
-        if evaluation != "all_invalid":
-            alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
-            # parse statistics from file
-            metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
-                                                     id_threshold)
-            metrics["qc_is_empty_query"] = False
-        else:
-            # if no sequences are there to be aligned, create a pseudooutput that looks
-            # exactly as the aligned output
-            metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query)
-            metrics["qc_is_empty_query"] = True
-        # store sequences
-        writer.write_sequences(query_in, metrics, os.path.join(out_dir, f"{prefix}"), evaluation,
-                               write_mode=write_mode)
+    metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t',
+                   mode=write_mode, header=header)
 
-        # store reference data
-        metrics["file_in_query"] = os.path.basename(query_in)
-        metrics["file_in_ref"] = os.path.basename(reference_in)
-        metrics = metrics[metrics.columns.sort_values()]
+    # remove temporary files
+    if evaluation != "all_invalid":
+        os.remove(alignment_file)
 
-        metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t',
-                       mode=write_mode, header=header)
-
-        # remove temporary files
-        if evaluation != "all_invalid":
-            os.remove(alignment_file)
-
-        os.remove(query_tmp)
-        os.remove(reference_tmp)
-        os.remove(concat)
-        print(metrics)
-        print(metrics.shape)
-        collect_dfs.append(metrics)
+    os.remove(query_tmp)
+    os.remove(reference_tmp)
+    print(metrics)
+    print(metrics.shape)
+    collect_dfs.append(metrics)
 
     # if there are more input files to iterate from, concat results
     metrics_all = pd.concat(collect_dfs)

@@ -1,5 +1,6 @@
 """Sequence Modules used in president."""
 import tempfile
+import os
 
 
 def to_valid_upper(dna_seq):
@@ -19,12 +20,14 @@ def to_valid_upper(dna_seq):
     return "".join([i.upper() if i in valid_nt else "N" for i in dna_seq])
 
 
-def preprocess(fasta):
+def preprocess(multifasta, suffix):
     """Remove white spaces from IDs in a FASTA file.
 
        Removes trailing spaces and newlines.
 
        Converts sequences to upper case.
+
+       Concatenates n fasta files received as *.fasta
 
        Replaces - with . for pblat.
 
@@ -32,26 +35,38 @@ def preprocess(fasta):
     ----------
     fasta : str
         FASTA file to remove white spaces.
+    suffix : str
+        Suffix for the temporary output file.
 
     Returns
     -------
     processed FASTA file.
 
     """
-    _, output = tempfile.mkstemp()
+    # Create temp file to save output
+    _, output = tempfile.mkstemp(suffix=suffix)
+
+    # If input is a string then convert it to a list
+    if isinstance(multifasta, str):
+        multifasta = [multifasta]
+
     with open(output, "w") as fout:
-        with open(fasta, "r") as fin:
-            for line in fin:
-                # removes trailing spaces and linebreaks
-                line = line.strip()
-                # replaces whitespaces with a placeholder %space% to avoid errors
-                # needs to be undone later in the code
-                if len(line) > 0 and line.startswith('>'):
-                    fout.write(line.replace(" ", "%space%") + "\n")
-                else:
-                    # convert sequence to upper case
-                    line = line.upper()
-                    # replaces gaps
-                    line = line.replace('-', '.')
-                    fout.write(line + "\n")
+        for fasta in multifasta:
+            print(f"Preprocessing file: {fasta} -> {output}")
+            with open(fasta, "r") as fin:
+                for line in fin:
+                    # removes trailing spaces and linebreaks
+                    line = line.strip()
+                    # replaces whitespaces with a placeholder %space% to avoid errors
+                    # needs to be undone later in the code
+                    if len(line) > 0 and line.startswith('>'):
+                        # Append filename to sequence ID
+                        header = line.replace(" ", "%space%") + ":" + os.path.basename(fasta)
+                        fout.write(header + "\n")
+                    else:
+                        # convert sequence to upper case
+                        line = line.upper()
+                        # replaces gaps
+                        line = line.replace('-', '.')
+                        fout.write(line + "\n")
     return output

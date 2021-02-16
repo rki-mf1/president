@@ -1,7 +1,6 @@
 """Alignment Modules used in president."""
 import subprocess
 import tempfile
-# import os
 
 import pandas as pd
 
@@ -26,19 +25,11 @@ def pblat(threads, reference, query, verbose=0):
 
     """
     print('Running pblat ...')
-    _, alignments = tempfile.mkstemp()
+    _, alignments = tempfile.mkstemp(suffix="_pblat.tsv")
     cmd = f'pblat -threads={threads} {reference} {query} {alignments}'
     if verbose:
         print(cmd)
-
-    # with open("temp.txt", "w") as fh:
-    #     process = subprocess.Popen(cmd, shell=True, stdout=fh)
-    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE)
-    out, err = p.communicate()
-    print(out)
-    print(err)
-
-    # _ = subprocess.check_output(cmd, shell=True)
+    _ = subprocess.check_output(cmd, shell=True)
     print('Finished pblat.')
     return alignments
 

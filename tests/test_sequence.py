@@ -10,7 +10,7 @@ fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
 def test_remove_spaces():
     fin = os.path.join(fixtures_loc, "test_remove_spaces.fasta")
     expected = os.path.join(fixtures_loc, "test_remove_spaces_expected.fasta")
-    fout = sequence.preprocess(fin)
+    fout = sequence.preprocess(fin, "_query.fasta")
     assert filecmp.cmp(fout, expected, shallow=True)
 
 
