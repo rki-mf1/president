@@ -155,6 +155,10 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         metrics["file_in_query"] = os.path.basename(query_in)
         metrics["file_in_ref"] = os.path.basename(reference_in)
         metrics = metrics[metrics.columns.sort_values()]
+        ##putting the columns with PSL prefix at the end
+        PSL_columns = metrics.filter(regex = "^PSL_").columns.to_list()
+        other_columns =[c for c in metrics.columns if c not in PSL_columns]
+        metrics = metrics[other_columns + PSL_columns]
 
         if qi > 0:
             metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t',
