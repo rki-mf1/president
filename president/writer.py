@@ -49,7 +49,7 @@ def init_metrics(n_seqs, extend_cols=False, metrics_df=None):
              "qc_post_aligned_all_valid", "reference_name", "length_reference"]
         if store_alignment:
             needed_cols += \
-                ["pblat_"+c for c in PSL_LABELS]
+                ["PSL_"+c for c in PSL_LABELS]
 
         for coli in needed_cols:
             if "qc_post" in coli:

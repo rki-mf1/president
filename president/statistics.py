@@ -223,7 +223,6 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9, s
 
     president_df["query_name"] = president_df["query_name"].str.replace("%space%", " ")
     president_df["reference_name"] = president_df["reference_name"].str.replace("%space%", " ")
-
     president_df = president_df.drop(president_df.filter(regex="pblat").columns, axis=1)
     president_df = president_df[sorted(president_df.columns)]
     return president_df
