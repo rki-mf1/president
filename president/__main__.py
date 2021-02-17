@@ -69,8 +69,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
     ----------
     reference_in : str
         reference FASTA location
-    query_in_raw : str
-        query FASTA location.
+    query_in_raw : str / list
+        query FASTA location(s).
     path_out : str
         Path to be used to store the results.
     prefix_out : str
@@ -99,9 +99,6 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
     # preprocess fasta files
     query_tmp = sequence.preprocess(query_in_raw, "_query.fasta")
     reference_tmp = sequence.preprocess(reference_in, "_reference.fasta")
-
-    write_mode = "w"
-    header = True
 
     prefix = prefix_out
     print(f"Running file: {query_tmp}")
@@ -152,16 +149,14 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query)
         metrics["qc_is_empty_query"] = True
     # store sequences
-    writer.write_sequences(query_tmp, metrics, os.path.join(out_dir, f"{prefix}"), evaluation,
-                           write_mode=write_mode)
+    writer.write_sequences(query_tmp, metrics, os.path.join(out_dir, f"{prefix}"), evaluation)
 
     # store reference data
     metrics["file_in_query"] = os.path.basename(query_tmp)
     metrics["file_in_ref"] = os.path.basename(reference_in)
     metrics = metrics[metrics.columns.sort_values()]
 
-    metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t',
-                   mode=write_mode, header=header)
+    metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t')
 
     # remove temporary files
     if evaluation != "all_invalid":
