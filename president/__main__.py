@@ -152,7 +152,10 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
     writer.write_sequences(query_tmp, metrics, os.path.join(out_dir, f"{prefix}"), evaluation)
 
     # store reference data
-    metrics["file_in_query"] = query_source
+    if len(query_source) > 0:
+        metrics["file_in_query"] = query_source
+    else:
+        metrics["file_in_query"] = 'NaN'
     metrics["file_in_ref"] = os.path.basename(reference_in)
     metrics = metrics[metrics.columns.sort_values()]
 
