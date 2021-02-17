@@ -97,8 +97,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
 
     print("##################### Running President ##########################")
     # preprocess fasta files
-    query_tmp = sequence.preprocess(query_in_raw, "_query.fasta")
-    reference_tmp = sequence.preprocess(reference_in, "_reference.fasta")
+    query_tmp, query_source = sequence.preprocess(query_in_raw, "_query.fasta")
+    reference_tmp, _ = sequence.preprocess(reference_in, "_reference.fasta")
 
     prefix = prefix_out
     print(f"Running file: {query_tmp}")
@@ -152,7 +152,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
     writer.write_sequences(query_tmp, metrics, os.path.join(out_dir, f"{prefix}"), evaluation)
 
     # store reference data
-    metrics["file_in_query"] = os.path.basename(query_tmp)
+    metrics["file_in_query"] = query_source
     metrics["file_in_ref"] = os.path.basename(reference_in)
     metrics = metrics[metrics.columns.sort_values()]
 

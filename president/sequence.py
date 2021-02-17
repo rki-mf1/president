@@ -1,5 +1,6 @@
 """Sequence Modules used in president."""
 import tempfile
+import os
 
 
 def to_valid_upper(dna_seq):
@@ -45,6 +46,9 @@ def preprocess(multifasta, suffix):
     # Create temp file to save output
     _, output = tempfile.mkstemp(suffix=suffix)
 
+    # Source file(s)
+    source = []
+
     # If input is a string then convert it to a list
     if isinstance(multifasta, str):
         multifasta = [multifasta]
@@ -60,14 +64,12 @@ def preprocess(multifasta, suffix):
                     # replaces whitespaces with a placeholder %space% to avoid errors
                     # needs to be undone later in the code
                     if len(line) > 0 and line.startswith('>'):
-                        # Append filename to sequence ID
-                        # if mappings are needed in the future, we can use
-                        # os.path.basename(fasta)).replace(" ", "%space%")
-                        fout.write(str(line.replace(" ", "%space%")) + "\n")
+                        source.append(os.path.basename(fasta))
+                        fout.write(line.replace(" ", "%space%") + "\n")
                     else:
                         # convert sequence to upper case
                         line = line.upper()
                         # replaces gaps
                         line = line.replace('-', '.')
                         fout.write(line + "\n")
-    return output
+    return output, source
