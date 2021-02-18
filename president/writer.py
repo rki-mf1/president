@@ -130,7 +130,7 @@ def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
     # iterate over query and split into valid / invalid fasta
     with screed.open(query) as seqfile:
         for seq in seqfile:
-            if seq.name in valid_ids:
+            if seq.name.replace("%space%", " ") in valid_ids:
                 write_fasta(valid_fout, seq, format_sequence=True)
             else:
                 write_fasta(invalid_fout, seq)
