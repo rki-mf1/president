@@ -88,7 +88,7 @@ def write_fasta(fileobj, seq, format_sequence=False):
     -------
         None
     """
-    sequence_header = f">{seq.name} {seq.description}"
+    sequence_header = f">{seq.name} {seq.description}".replace("%space%", " ")
     fileobj.write(sequence_header.rstrip()+"\n")
     if format_sequence:
         # make sure to only store upper case, ACGT symbols. replace all others with "N"s
