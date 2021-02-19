@@ -25,7 +25,7 @@ def pblat(threads, reference, query, verbose=0):
 
     """
     print('Running pblat ...')
-    _, alignments = tempfile.mkstemp()
+    _, alignments = tempfile.mkstemp(suffix="_pblat.tsv")
     cmd = f'pblat -threads={threads} {reference} {query} {alignments}'
     if verbose:
         print(cmd)

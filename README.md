@@ -50,7 +50,7 @@ The script provides:
 * a FASTA file with _invalid_ sequences
 
 The separation between the _valid_ and _invalid_ bin is mainly based on the defined identity/n thresholds (`-x`, default: 0.9; `-n`, default: 0.05) and further sanity checks (non-IUPAC characters).
-
+Note that for multiple query inputs the valid and invalid sequence headers are NOT associate with their filename. This meta information must be retrieved from the report.
 An example from the call described above can be found [online](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/master/examples/report.csv).
 
 The transposed version of the output is shown below.
@@ -98,7 +98,7 @@ The transposed version of the output is shown below.
 8) LongestNGap - Lenght of the longest N gap
 9) acgt_bases - number of ACGT bases
 10) file_in_query - the input query file name
-11) file_in_ref - the input reference file name
+11) file_in_ref - the input reference file name (note that for multiple input queries a tempororay file name is reported)
 12) non_iupac_bases - Number of non-IUPAC nucleotides in the query
 13) qc_all_valid - True if all checks below are True
 14) qc_is_empty_query - True if input query file is not empty
@@ -109,8 +109,8 @@ The transposed version of the output is shown below.
 19) qc_valid_nucleotides - True if only valid IUPAC characters are in the query
 20) qc_valid_pass_nthreshold - True if `-n` percentage of Ns in the query is not exceeded
 21) query_description - query description, if available
-22) query_index - the position of the sequence in the query fasta input file
-23) query_name - FASTA ID of the query sequence
+22) query_index - the position of the sequence in the query fasta input file (for multiple files the counter is not resetted)
+23) query_name - FASTA ID of the query sequence + file origin, format <header>:<filename>
 24) reference_name - FASTA ID of the reference sequence
 
 __Note__: max(sequence_lengths) is equal to max(length_query, length_reference).
