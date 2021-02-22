@@ -158,7 +158,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         metrics = metrics[metrics.columns.sort_values()]
         # putting the columns with PSL prefix at the end
         PSL_columns = metrics.filter(regex="^PSL_").columns.to_list()
-        other_columns =[c for c in metrics.columns if c not in PSL_columns]
+        other_columns = [c for c in metrics.columns if c not in PSL_columns]
         metrics = metrics[other_columns + PSL_columns]
 
         if qi > 0:
