@@ -211,7 +211,7 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
     president_df['Date'] = datetime.today().strftime('%Y-%m-%d')
 
     if store_alignment:
-        align_df = president_df.filter(regex ="pblat").copy()
+        align_df = president_df.filter(regex="pblat").copy()
         align_df.columns = [c.replace("pblat_", "PSL_") for c in align_df]
         # we add those columns with a simple concatenation.
         president_df = pd.concat([president_df, align_df], axis=1)

@@ -147,7 +147,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         else:
             # if no sequences are there to be aligned, create a pseudooutput that looks
             # exactly as the aligned output
-            metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query)
+            metrics = writer.init_metrics(1, extend_cols=True, metrics_df=summary_stats_query,
+                                          store_alignment=store_alignment)
             metrics["qc_is_empty_query"] = True
         # store sequences
         writer.write_sequences(query_in, metrics, os.path.join(out_dir, f"{prefix}"), evaluation)
@@ -158,7 +159,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         metrics = metrics[metrics.columns.sort_values()]
         # putting the columns with PSL prefix at the end
         PSL_columns = metrics.filter(regex="^PSL_").columns.to_list()
-        other_columns =[c for c in metrics.columns if not c in PSL_columns]
+        other_columns =[c for c in metrics.columns if c not in PSL_columns]
         metrics = metrics[other_columns + PSL_columns]
 
         if qi > 0:
@@ -206,14 +207,12 @@ def main():  # pragma: no cover
     parser.add_argument('-t', '--threads', type=int, default=4,
                         help='Number of threads to use for pblat.')
     parser.add_argument('-p', '--path', required=True,
-                        help=\
-                        'Path to be used to store results and FASTA files.')
+                        help='Path to be used to store results and FASTA files.')
     parser.add_argument('-f', '--prefix', required=False, default="",
                         help='Prefix to be used t store results in the path')
     parser.add_argument('-a', '--store_alignment',
                         required=False, action="store_true",
-                        help=\
-                        'add query alignment columns (PSL format)')
+                        help='add query alignment columns (PSL format)')
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()

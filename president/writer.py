@@ -12,7 +12,7 @@ from president import alignment
 PSL_LABELS = alignment.PSL_LABELS
 
 
-def init_metrics(n_seqs, extend_cols=False, metrics_df=None):
+def init_metrics(n_seqs, extend_cols=False, metrics_df=None, store_alignment=False):
     """
     Init output data structure.
 
