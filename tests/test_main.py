@@ -23,7 +23,7 @@ def test_aligner_combined():
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
     tmppath = os.path.splitext(tmpfile)[0]
     president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.0,
-                              threads=4, path_out=tmppath)
+                              threads=4, path_out=tmppath, store_alignment=False)
     os.remove(tmpfile)
     assert president_df.shape == (19, 27)
 
@@ -35,7 +35,7 @@ def test_empty_alignment():
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
     tmppath = os.path.splitext(tmpfile)[0]
     president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.9,
-                              threads=4, path_out=tmppath, n_threshold=0.05)
+                              threads=4, path_out=tmppath, n_threshold = 0.05, store_alignment=False)
     os.remove(tmpfile)
     assert not president_df["qc_all_valid"].iloc[0]
     assert president_df.shape == (1, 27)
@@ -46,9 +46,14 @@ def test_empty_fasta():
     # has only failing sequence
     reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
+<<<<<<< HEAD
     tmppath = os.path.splitext(tmpfile)[0]
     president_df = pm.aligner(reference_in=reference, query_in_raw=query, path_out=tmppath,
                               id_threshold=0.9, threads=4)
+=======
+    president_df = pm.aligner(reference_in=reference, query_in_raw=query, path_out=tmppath,
+                              id_threshold=0.9, threads=4, store_alignment=False)
+>>>>>>> pytest clean up
     os.remove(tmpfile)
     assert president_df.shape == (1, 27)
 
@@ -61,7 +66,7 @@ def test_same_format():
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
     tmppath = os.path.splitext(tmpfile)[0]
     president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.0,
-                              threads=4, path_out=tmppath)
+                              threads=4, path_out=tmppath, store_alignment=False)
     os.remove(tmpfile)
 
     query = os.path.join(fixtures_loc, "nnnnnnn.fasta")
@@ -70,7 +75,7 @@ def test_same_format():
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
     tmppath = os.path.splitext(tmpfile)[0]
     president_df2 = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.9,
-                               threads=4, path_out=tmppath)
+                               threads=4, path_out=tmppath, store_alignment=False)
     os.remove(tmpfile)
 
     assert np.all(president_df.columns == president_df2.columns)

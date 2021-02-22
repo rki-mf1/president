@@ -11,6 +11,7 @@ from president import alignment
 
 PSL_LABELS = alignment.PSL_LABELS
 
+
 def init_metrics(n_seqs, extend_cols=False, metrics_df=None):
     """
     Init output data structure.
@@ -20,8 +21,8 @@ def init_metrics(n_seqs, extend_cols=False, metrics_df=None):
     n_seqs: int,
             number of sequences to process / store meta values
     extend_cols: bool,
-                if True, extends the columns to presidents output format. Needed for consistent
-                writing in cases where no sequences were aligned.
+                if True, extends the columns to presidents output format.
+                Needed for consistent writing in cases where no sequences were aligned.
     metrics_df:
         Potential Dataframe to be extended (default: None). Must be used with extend_cols.
 
@@ -89,7 +90,7 @@ def write_fasta(fileobj, seq, format_sequence=False):
     seq: seq object,
         screed sequence object
     format_sequence: bool,
-                    If True, transform sequence to valid upper case sequence (default: False)
+        If True, transform sequence to valid upper case sequence (default: False)
     Returns
     -------
         None

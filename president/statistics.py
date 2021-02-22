@@ -122,7 +122,8 @@ def qc_check(reference, query_stats, id_threshold=0.9, n_threshold=0.05):
         query_stats["qc_valid_length"] & query_stats["qc_valid_pass_nthreshold"]
 
 
-def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9, store_alignment = False):
+def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
+                        store_alignment=False):
     """Calculate nucleotide ident from a 2-sequence MSA.
 
     The query can consists of a multi-fasta file.
@@ -138,7 +139,7 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9, s
     id_threshold : float
         minimal id threshold to pass
     store_alignment : bool
-        it true all columns from PSL alignment are returned (with a "PSL_" prefix)
+        if true columns from PSL alignment are returned (with a "PSL_" prefix)
 
     Raises
     ------
@@ -212,7 +213,7 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9, s
     if store_alignment:
         align_df = president_df.filter(regex ="pblat").copy()
         align_df.columns = [c.replace("pblat_", "PSL_") for c in align_df]
-        ##we add those columns with a simple concatenation.
+        # we add those columns with a simple concatenation.
         president_df = pd.concat([president_df, align_df], axis=1)
     # cleanup dataframe and improve reporting format
     president_df = president_df.rename(
