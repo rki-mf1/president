@@ -215,7 +215,7 @@ def main():  # pragma: no cover
     args = parser.parse_args()
 
     aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold,
-            args.threads, args.store_alignment)
+            args.n_threshold, args.threads, args.store_alignment)
 
 
 if __name__ == "__main__":
