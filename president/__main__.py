@@ -60,8 +60,9 @@ def is_available(name="pblat"):
         raise ValueError(f'{name} not on PATH or marked as executable.')
 
 
-def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.9,
-            threads=4, store_alignment = False):  # pragma: no cover
+def aligner(reference_in, query_in_raw, path_out, prefix_out="",
+            id_threshold=0.9,
+            threads=4, store_alignment=False):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
 
@@ -154,16 +155,18 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         metrics["file_in_query"] = os.path.basename(query_in)
         metrics["file_in_ref"] = os.path.basename(reference_in)
         metrics = metrics[metrics.columns.sort_values()]
-        ##putting the columns with PSL prefix at the end
-        PSL_columns = metrics.filter(regex = "^PSL_").columns.to_list()
-        other_columns =[c for c in metrics.columns if c not in PSL_columns]
+        # putting the columns with PSL prefix at the end
+        PSL_columns = metrics.filter(regex="^PSL_").columns.to_list()
+        other_columns =[c for c in metrics.columns if not c in PSL_columns]
         metrics = metrics[other_columns + PSL_columns]
 
         if qi > 0:
-            metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t',
+            metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"),
+                           index=False, sep='\t',
                            mode="a", header=False)
         else:
-            metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t')
+            metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"),
+                           index=False, sep='\t')
 
         # remove temporary files
         if evaluation != "all_invalid":
@@ -199,16 +202,20 @@ def main():  # pragma: no cover
     parser.add_argument('-t', '--threads', type=int, default=4,
                         help='Number of threads to use for pblat.')
     parser.add_argument('-p', '--path', required=True,
-                        help='Path to be used to store results and FASTA files.')
+                        help=\
+                        'Path to be used to store results and FASTA files.')
     parser.add_argument('-f', '--prefix', required=False, default="",
                         help='Prefix to be used t store results in the path')
-    parser.add_argument('-a', '--store_alignment', required=False, action="store_true",
-                        help='add columns for the alignment of the query to the reference (PSL format)')
+    parser.add_argument('-a', '--store_alignment',
+                        required=False, action="store_true",
+                        help=\
+                        'add query alignment columns (PSL format)')
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
-    aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold, args.threads, args.store_alignment)
+    aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold,
+            args.threads, args.store_alignment)
 
 
 if __name__ == "__main__":
