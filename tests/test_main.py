@@ -82,7 +82,8 @@ def test_multi_input():
     reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
     tmpfile = tempfile.mkstemp(suffix=".csv")[1]
     tmppath = os.path.splitext(tmpfile)[0]
-    president_df = pm.aligner(reference, [query], path_out=tmppath, id_threshold=0.9, n_threshold=1.0)
+    president_df = pm.aligner(reference, [query], path_out=tmppath,
+                              id_threshold=0.9, n_threshold=1.0)
 
     with screed.open(os.path.join(tmppath, "valid.fasta")) as seqfile:
         valid_n1 = int(np.sum([1 for i in seqfile]))
