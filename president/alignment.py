@@ -58,6 +58,9 @@ def parse_alignment(alignment_file):
                   'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
                   'QStarts', 'TStarts']
         alignments.columns = labels
+        # If IDs have only numbers pandas thinks it is not a string
+        # so I convert it to string here to avoid errors (see issue #54)
+        alignments.QName = alignments.QName.astype(str)
 
     except pd.errors.EmptyDataError:
         print("Error reading pblat output. Perhaps it did not align anything (pandas).")
