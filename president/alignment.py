@@ -60,6 +60,7 @@ def parse_alignment(alignment_file):
         alignments = pd.read_csv(alignment_file,
                                  header=None, sep='\t', skiprows=5)
         alignments.columns = PSL_LABELS
+        alignments.QName = alignments.QName.astype(str)
 
     except pd.errors.EmptyDataError:
         print("Error reading pblat output. Perhaps it did not align anything (pandas).")
