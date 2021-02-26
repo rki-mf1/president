@@ -60,8 +60,9 @@ def is_available(name="pblat"):
         raise ValueError(f'{name} not on PATH or marked as executable.')
 
 
-def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.9,
-            threads=4, n_threshold=0.05):  # pragma: no cover
+def aligner(reference_in, query_in_raw, path_out, prefix_out="",
+            id_threshold=0.9, n_threshold=0.05,
+            threads=4, store_alignment=False):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
 
@@ -81,7 +82,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         Percentage of allowed Ns, sequences with hier N% will be rejected
     threads : int, optional
         Number of threads to use. The default is 4.
-
+    store_alignment : bool, optional
+        Should we store the results of the alignements in the qc metrics table? default is False
     Returns
     -------
     datframe,
@@ -89,12 +91,12 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
     """
     # Files exist?
     assert os.path.isfile(reference_in)
+    print(query_in_raw)
     # make sure input is iterable
     if not isinstance(query_in_raw, list):
         query_in_raw = [query_in_raw]
 
     collect_dfs = []
-
     print("##################### Running President ##########################")
     # preprocess fasta files
     query_tmp, query_source = sequence.preprocess(query_in_raw, "_query.fasta")
@@ -141,7 +143,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
         # parse statistics from file
         metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
-                                                 id_threshold)
+                                                 id_threshold, store_alignment)
         metrics["qc_is_empty_query"] = False
     else:
         # if no sequences are there to be aligned, create a pseudooutput that looks
@@ -158,6 +160,10 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="", id_threshold=0.
         metrics["file_in_query"] = 'NaN'
     metrics["file_in_ref"] = os.path.basename(reference_in)
     metrics = metrics[metrics.columns.sort_values()]
+    # putting the columns with PSL prefix at the end
+    PSL_columns = metrics.filter(regex="^PSL_").columns.to_list()
+    other_columns = [c for c in metrics.columns if c not in PSL_columns]
+    metrics = metrics[other_columns + PSL_columns]
 
     metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t')
 
@@ -201,12 +207,15 @@ def main():  # pragma: no cover
                         help='Path to be used to store results and FASTA files.')
     parser.add_argument('-f', '--prefix', required=False, default="",
                         help='Prefix to be used t store results in the path')
+    parser.add_argument('-a', '--store_alignment',
+                        required=False, action="store_true",
+                        help='add query alignment columns (PSL format)')
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
     args = parser.parse_args()
 
-    aligner(args.reference, args.query, args.path, prefix_out=args.prefix,
-            id_threshold=args.id_threshold, n_threshold=args.n_threshold, threads=args.threads)
+    aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold,
+            args.n_threshold, args.threads, args.store_alignment)
 
 
 if __name__ == "__main__":

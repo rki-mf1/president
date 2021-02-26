@@ -4,6 +4,12 @@ import tempfile
 
 import pandas as pd
 
+PSL_LABELS = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
+              'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
+              'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
+              'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
+              'QStarts', 'TStarts']
+
 
 def pblat(threads, reference, query, verbose=0):
     """Perform blat alignment.
@@ -51,15 +57,9 @@ def parse_alignment(alignment_file):
     # Read the alignment(s) with pandas
     # Pandas can be replaced with split to reduce dependencies
     try:
-        alignments = pd.read_csv(alignment_file, header=None, sep='\t', skiprows=5)
-        labels = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
-                  'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
-                  'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
-                  'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
-                  'QStarts', 'TStarts']
-        alignments.columns = labels
-        # If IDs have only numbers pandas thinks it is not a string
-        # so I convert it to string here to avoid errors (see issue #54)
+        alignments = pd.read_csv(alignment_file,
+                                 header=None, sep='\t', skiprows=5)
+        alignments.columns = PSL_LABELS
         alignments.QName = alignments.QName.astype(str)
 
     except pd.errors.EmptyDataError:
