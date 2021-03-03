@@ -139,7 +139,7 @@ def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
     ninvalid = 0
     with screed.open(query) as seqfile:
         for seq in seqfile:
-            print(seq.name)
+            # print(seq.name)
             if seq.name.replace("%space%", " ") in valid_ids:
                 nvalid += 1
                 write_fasta(valid_fout, seq, format_sequence=True)
