@@ -1,6 +1,7 @@
 """Sequence Modules used in president."""
 import tempfile
 import os
+import numpy as np
 
 
 def to_valid_upper(dna_seq):
@@ -72,4 +73,4 @@ def preprocess(multifasta, suffix):
                         # replaces gaps
                         line = line.replace('-', '.')
                         fout.write(line + "\n")
-    return output, source
+    return output, np.array(source)
