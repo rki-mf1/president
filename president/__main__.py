@@ -126,7 +126,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
                             n_threshold=n_threshold)
 
         # perform initial sequence check
-        query_tmp, evaluation, invalid_ids = \
+        query_valid_tmp, evaluation, invalid_ids = \
             statistics.split_valid_sequences(query_tmp, summary_stats_query)
 
         print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
@@ -140,7 +140,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     # align sequences if more than 1 sequence passes the initial qc
     if evaluation != "all_invalid":
-        alignment_file = alignment.pblat(threads, reference_tmp, query_tmp, verbose=1)
+        alignment_file = alignment.pblat(threads, reference_tmp, query_valid_tmp, verbose=1)
         # parse statistics from file
         metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
                                                  id_threshold, store_alignment)

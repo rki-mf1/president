@@ -90,6 +90,7 @@ def test_multi_input():
 
     with screed.open(os.path.join(tmppath, "invalid.fasta")) as seqfile:
         invalid_n1 = int(np.sum([1 for i in seqfile]))
+
     shutil.rmtree(tmppath, ignore_errors=True)
 
     n1 = president_df.shape[0]
@@ -106,6 +107,8 @@ def test_multi_input():
         invalid_n2 = int(np.sum([1 for i in seqfile]))
     shutil.rmtree(tmppath, ignore_errors=True)
 
+    assert valid_n1 == 16
+    assert invalid_n1 == 3
     assert n1*2 == president_df.shape[0]
     assert valid_n1 * 2 == valid_n2
     assert invalid_n1 * 2 == invalid_n2

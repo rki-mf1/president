@@ -135,14 +135,19 @@ def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
     invalid_fout = open(invalid_name, write_mode)
 
     # iterate over query and split into valid / invalid fasta
+    nvalid = 0
+    ninvalid = 0
     with screed.open(query) as seqfile:
         for seq in seqfile:
+            print(seq.name)
             if seq.name.replace("%space%", " ") in valid_ids:
+                nvalid += 1
                 write_fasta(valid_fout, seq, format_sequence=True)
             else:
                 write_fasta(invalid_fout, seq)
+                ninvalid += 1
 
-    print(f"Valid sequences written to: {valid_name}")
-    print(f"Invalid sequences written to: {invalid_name}")
+    print(f"Valid (n={nvalid}) sequences written to: {valid_name}")
+    print(f"Invalid (n={ninvalid}) sequences written to: {invalid_name}")
     valid_fout.close()
     invalid_fout.close()
