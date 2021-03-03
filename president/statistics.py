@@ -343,7 +343,7 @@ def split_valid_sequences(query, query_stats, write_mode="w"):
                 # else, we have an invalid sequence
                 else:
                     seqwriter = invalid_fout
-                writer.write_fasta(seqwriter, qry, format_sequence=True)
+                writer.write_fasta(seqwriter, qry, format_sequence=True, format_pblat=True)
 
         # close files
         invalid_fout.close()
