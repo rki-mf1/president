@@ -35,7 +35,7 @@ president --query query.fasta --reference reference.fasta -x identity_threshold 
 To run an example, download a [query](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/master/examples/NC_045512.2.20mis.fasta) FASTA and
 a [reference](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/master/examples/NC_045512.2.fasta) FASTA from GitLab.
 
-Run the alignment with the following command and identity of ACGT bases of 93% and maximal 5% Ns in the query. Note that multiple fasta sequences are allowed to be present in the query but **not** in the reference FASTA.
+Run the alignment with the following command and identity of ACGT bases of 90% and maximal 5% Ns in the query. Note that multiple fasta sequences are allowed to be present in the query but **not** in the reference FASTA.
 
 ```
 president -q NC_045512.2.20mis.fasta -r NC_045512.2.fasta -x 0.9 -n 0.05 -t 4 -p output/ -f test_
@@ -57,21 +57,13 @@ The transposed version of the output is shown below.
 
 | variable                                          | value                                                                                           |
 |:--------------------------------------------------|:------------------------------------------------------------------------------------------------|
+| query_name                                        | NC_045512.2 Severe acute [...]                                                                  |
+| reference_name                                    | NC_045512.2 Severe acute [...]                                                                  |
+| file_in_query	                                    | NC_045512.2.20mis.fasta                                                                         |
+| file_in_ref                                       | NC_045512.2.fasta                                                                               |
 | ACGT Nucleotide identity                          | 0.9987                                                                                          |
 | ACGT Nucleotide identity (ignoring Ns)            | 0.9994                                                                                          |
 | ACGT Nucleotide identity (ignoring non-ACGTNs)    | 0.9994                                                                                          | 
-| Date                                              | 2021-01-20                                                                                      |
-| Matches                                           | 29864                                                                                           |
-| Mismatches                                        | 19                                                                                              |
-| N_bases                                           | 20                                                                                              |  
-| Ngap                                              | 20                                                                                              |
-| acgt_bases                                        | 29883                                                                                           |
-| file_in_query	                                    | NC_045512.2.20mis.fasta                                                                         |
-| file_in_ref                                       | NC_045512.2.fasta                                                                               |
-| iupac_bases                                       | 20                                                                                              |
-| length_query                                      | 29903                                                                                           |          
-| length_reference                                  | 29903                                                                                           |
-| non_iupac_bases                                   | 0                                                                                               |
 | qc_all_valid                                      | True                                                                                            |
 | qc_is_empty_query                                 | False                                                                                           |
 | qc_post_align_pass_threshold                      | True                                                                                            |
@@ -79,39 +71,50 @@ The transposed version of the output is shown below.
 | qc_post_aligned_all_valid                         | True                                                                                            |
 | qc_valid_length                                   | True                                                                                            |
 | qc_valid_nucleotides                              | True                                                                                            |
-| qc_valid_number_n                                 | True                                                                                            |
+| qc_valid_pass_nthreshold                          | True                                                                                            |
+| acgt_bases                                        | 29883                                                                                           |
+| iupac_bases                                       | 20                                                                                              |
+| non_iupac_bases                                   | 0                                                                                               |
+| N_bases                                           | 20                                                                                              |  
+| length_query                                      | 29903                                                                                           |          
+| length_reference                                  | 29903                                                                                           |
+| LongestNGap                                       | 20                                                                                              |
+| Matches                                           | 29864                                                                                           |
+| Mismatches                                        | 19                                                                                              |
 | query_description                                 |                                                                                                 |
 | query_index                                       | 0                                                                                               |
-| query_name                                        | NC_045512.2 Severe acute [...]                                                                  |
-| reference_name                                    | NC_045512.2 Severe acute [...]                                                                  |
+| Date                                              | 2021-01-20                                                                                      |
 
 
 ##### Definitions:
 
-1) ACGT Nucleotide identity - Percentage of ACGT matches to the reference (# matches / max(sequence_lengths))
-2) ACGT Nucleotide identity (ignoring Ns) - Percentage of ACGT matches to the reference (# matches / max(sequence_lengths) - #Ns in query)
-3) ACGT Nucleotide identity (ignoring non-ACGTNs) - Percentage of ACGT matches to the reference (# matches / max(sequence_lengths) - #non-ACGTNs in query)
-4) Date - the yyyy-mm-dd of the execution of the script
-5) Matches - the number of matches in the alignment
-6) Mismatches - the number of mismatches in the alignment
-7) N_bases - the number of N bases
-8) LongestNGap - Lenght of the longest N gap
-9) acgt_bases - number of ACGT bases
-10) file_in_query - the input query file name
-11) file_in_ref - the input reference file name (note that for multiple input queries a tempororay file name is reported)
-12) non_iupac_bases - Number of non-IUPAC nucleotides in the query
-13) qc_all_valid - True if all checks below are True
-14) qc_is_empty_query - True if input query file is not empty
-15) qc_post_align_pass_threshold - True if 'ACGT Nucleotide identity' is greater than the `-x` parameter
-16) qc_post_aligned - Set to True if the sequence was aligned (can be False either because of initial checks or failed alignments)
-17) qc_post_aligned_all_valid - True if all checks before alignment are True, alignment is only performed if this value is True
-18) qc_valid_length - True if the query is actually able to achieve the `-x` score even if the query is shorter/ longer
-19) qc_valid_nucleotides - True if only valid IUPAC characters are in the query
-20) qc_valid_pass_nthreshold - True if `-n` percentage of Ns in the query is not exceeded
-21) query_description - query description, if available
-22) query_index - the position of the sequence in the query fasta input file (for multiple files the counter is not resetted)
-23) query_name - FASTA ID of the query sequence + file origin, format <header>:<filename>
-24) reference_name - FASTA ID of the reference sequence
+1) query_name - FASTA ID of the query sequence + file origin, format <header>:<filename>
+2) reference_name - FASTA ID of the reference sequence
+3) file_in_query - the input query file name
+4) file_in_ref - the input reference file name (note that for multiple input queries a tempororay file name is reported)
+5) ACGT Nucleotide identity - Percentage of ACGT matches to the reference (# matches / max(sequence_lengths))
+6) ACGT Nucleotide identity (ignoring Ns) - Percentage of ACGT matches to the reference (# matches / max(sequence_lengths) - #Ns in query)
+7) ACGT Nucleotide identity (ignoring non-ACGTNs) - Percentage of ACGT matches to the reference (# matches / max(sequence_lengths) - #non-ACGTNs in query)
+8) qc_all_valid - True if all checks below are True
+9) qc_is_empty_query - True if input query file is not empty
+10) qc_post_align_pass_threshold - True if 'ACGT Nucleotide identity' is greater than the `-x` parameter
+11) qc_post_aligned - Set to True if the sequence was aligned (can be False either because of initial checks or failed alignments)
+12) qc_post_aligned_all_valid - True if all checks before alignment are True, alignment is only performed if this value is True
+13) qc_valid_length - True if the query is actually able to achieve the `-x` score even if the query is shorter/ longer
+14) qc_valid_nucleotides - True if only valid IUPAC characters are in the query
+15) qc_valid_pass_nthreshold - True if `-n` percentage of Ns in the query is not exceeded
+16) acgt_bases - number of ACGT bases
+17) iupac_bases - number of IUPAC bases
+18) non_iupac_bases - Number of non-IUPAC nucleotides in the query
+19) N_bases - the number of N bases
+20) length_query - the length of the query
+21) length_reference - the length of the reference
+22) LongestNGap - Lenght of the longest N gap
+23) Matches - the number of matches in the alignment
+24) Mismatches - the number of mismatches in the alignment
+25) query_description - query description, if available
+26) query_index - the position of the sequence in the query fasta input file (for multiple files the counter is not resetted)
+27) Date - the yyyy-mm-dd of the execution of the script
 
 __Note__: max(sequence_lengths) is equal to max(length_query, length_reference).
 
