@@ -11,6 +11,16 @@ from president import alignment
 
 PSL_LABELS = alignment.PSL_LABELS
 
+COL_ORDER = ["query_name", "reference_name", "file_in_query", "file_in_ref",
+             "ACGT Nucleotide identity", "ACGT Nucleotide identity (ignoring Ns)",
+             "ACGT Nucleotide identity (ignoring non-ACGTNs)", "qc_all_valid",
+             "qc_is_empty_query", "qc_post_align_pass_threshold", "qc_post_aligned",
+             "qc_post_aligned_all_valid", "qc_valid_length", "qc_valid_nucleotides",
+             "qc_valid_pass_nthreshold", "acgt_bases", "iupac_bases",
+             "non_iupac_bases", "N_bases", "length_query", "length_reference",
+             "LongestNGap", "Matches", "Mismatches", "query_description",
+             "query_index", "Date"]
+
 
 def init_metrics(n_seqs, extend_cols=False, metrics_df=None, store_alignment=False):
     """
@@ -35,7 +45,7 @@ def init_metrics(n_seqs, extend_cols=False, metrics_df=None, store_alignment=Fal
                                  ("query_index", "object"),
                                  ("acgt_bases", np.uint32),
                                  ("iupac_bases", np.uint32),
-                                 ("non_upac_bases", np.uint32),
+                                 ("non_iupac_bases", np.uint32),
                                  ("N_bases", np.uint32),
                                  ("length_query", np.uint32),
                                  ("LongestNGap", np.uint32)])

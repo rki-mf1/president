@@ -136,7 +136,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         summary_stats_query = pd.DataFrame(writer.init_metrics(0))
         summary_stats_query = \
             summary_stats_query.assign(**{'qc_all_valid': [], 'qc_valid_length': [],
-                                          'qc_valid_nucleotides': [], 'qc_valid_number_n': []})
+                                          'qc_valid_nucleotides': [], 'qc_valid_number_n': [],
+                                          'qc_valid_pass_nthreshold': []})
 
     # align sequences if more than 1 sequence passes the initial qc
     if evaluation != "all_invalid":
@@ -159,12 +160,12 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
     else:
         metrics["file_in_query"] = 'NaN'
     metrics["file_in_ref"] = os.path.basename(reference_in)
+
+    # pretify output
     metrics = metrics[metrics.columns.sort_values()]
     # putting the columns with PSL prefix at the end
     PSL_columns = metrics.filter(regex="^PSL_").columns.to_list()
-    other_columns = [c for c in metrics.columns if c not in PSL_columns]
-    metrics = metrics[other_columns + PSL_columns]
-
+    metrics = metrics[writer.COL_ORDER + PSL_columns]
     metrics.to_csv(os.path.join(out_dir, f"{prefix}report.tsv"), index=False, sep='\t')
 
     # remove temporary files

@@ -66,7 +66,7 @@ def summarize_query(query):
 
             statistics_ar["acgt_bases"][idx] = acgts_ct
             statistics_ar["iupac_bases"][idx] = iupacs_ct
-            statistics_ar["non_upac_bases"][idx] = nonupac_ct
+            statistics_ar["non_iupac_bases"][idx] = nonupac_ct
             statistics_ar["N_bases"][idx] = Ns
             statistics_ar["length_query"][idx] = len(seq.rstrip())
             statistics_ar["LongestNGap"][idx] = get_largest_N_gap(seq)
@@ -108,7 +108,7 @@ def qc_check(reference, query_stats, id_threshold=0.9, n_threshold=0.05):
     query_stats["length_reference"] = length_ref
 
     # valid characters?
-    query_stats["qc_valid_nucleotides"] = query_stats["non_upac_bases"] == 0
+    query_stats["qc_valid_nucleotides"] = query_stats["non_iupac_bases"] == 0
 
     # check if number of Ns are below threshold
     query_stats["qc_valid_pass_nthreshold"] = \
@@ -197,7 +197,7 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
     president_df.at[idx, "iupac_ambiguous_identities"] = \
         president_df["pblat_Matches"] / \
         (president_df[["pblat_TSize", "length_query"]].max(axis=1)
-         - president_df[["iupac_bases", "non_upac_bases"]].sum(axis=1))
+         - president_df[["iupac_bases", "non_iupac_bases"]].sum(axis=1))
 
     # passed id threshold
     president_df["qc_post_align_pass_threshold"] = president_df["identities"] >= id_threshold
