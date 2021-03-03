@@ -1,7 +1,10 @@
 """Sequence Modules used in president."""
-import tempfile
+import logging
 import os
+import tempfile
 import numpy as np
+
+logger = logging.getLogger(__name__)
 
 
 def to_valid_upper(dna_seq):
@@ -57,7 +60,7 @@ def preprocess(multifasta, suffix):
     # concat multiple input files
     with open(output, "w") as fout:
         for fasta in multifasta:
-            print(f"Preprocessing file: {fasta} -> {output}")
+            logger.info(f"Preprocessing file: {fasta} -> {output}")
             with open(fasta, "r") as fin:
                 for line in fin:
                     # removes trailing spaces and linebreaks

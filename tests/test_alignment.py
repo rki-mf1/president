@@ -18,7 +18,7 @@ def test_pblat_simple_10MM():
     exp_Ns = 0
 
     # run pblat
-    alignment_f = alignment.pblat(4, reference, query, verbose=1)
+    alignment_f = alignment.pblat(4, reference, query)
 
     alignments = pd.read_csv(alignment_f, header=None, sep='\t', skiprows=5)
     alignments.columns = \

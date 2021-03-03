@@ -1,13 +1,15 @@
 """Module for writing and organizing results."""
+import logging
 import os
-
-import screed
-import numpy as np
 from datetime import datetime
 
-from president import sequence
+import numpy as np
+import screed
 
 from president import alignment
+from president import sequence
+
+logger = logging.getLogger(__name__)
 
 PSL_LABELS = alignment.PSL_LABELS
 
@@ -153,7 +155,6 @@ def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
     ninvalid = 0
     with screed.open(query) as seqfile:
         for seq in seqfile:
-            # print(seq.name)
             if seq.name.replace("%space%", " ") in valid_ids:
                 nvalid += 1
                 write_fasta(valid_fout, seq, format_sequence=True)
@@ -161,7 +162,7 @@ def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
                 write_fasta(invalid_fout, seq)
                 ninvalid += 1
 
-    print(f"Valid (n={nvalid}) sequences written to: {valid_name}")
-    print(f"Invalid (n={ninvalid}) sequences written to: {invalid_name}")
+    logger.info(f"Valid (n={nvalid}) sequences written to: {valid_name}")
+    logger.info(f"Invalid (n={ninvalid}) sequences written to: {invalid_name}")
     valid_fout.close()
     invalid_fout.close()

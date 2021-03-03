@@ -291,7 +291,7 @@ def test_not_aligned():
     qc_stats = statistics.summarize_query(query)
     statistics.qc_check(reference, qc_stats)
 
-    alignment_f = alignment.pblat(4, reference, query, verbose=1)
+    alignment_f = alignment.pblat(4, reference, query)
     metrics = statistics.nucleotide_identity(alignment_f, qc_stats)
 
     assert exp_rows == metrics.shape[0]
