@@ -155,9 +155,10 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     # store reference data
     if len(query_source) > 0:
-        metrics["file_in_query"] = query_source
+        metrics["file_in_query"] = query_source[metrics["query_index"].astype(int)]
     else:
         metrics["file_in_query"] = 'NaN'
+
     metrics["file_in_ref"] = os.path.basename(reference_in)
     metrics = metrics[metrics.columns.sort_values()]
     # putting the columns with PSL prefix at the end

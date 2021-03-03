@@ -109,3 +109,24 @@ def test_multi_input():
     assert n1*2 == president_df.shape[0]
     assert valid_n1 * 2 == valid_n2
     assert invalid_n1 * 2 == invalid_n2
+
+
+def test_combined_query_names():
+    query = [os.path.join(fixtures_loc, "test_combined.fasta"),
+             os.path.join(fixtures_loc, "test_combined_b.fasta")]
+    query = os.path.join(fixtures_loc, "test_combined.fasta")
+    # has 19 sequences
+    reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
+
+    # multi case
+    tmpfile = tempfile.mkstemp(suffix=".csv")[1]
+    tmppath = os.path.splitext(tmpfile)[0]
+    president_df = pm.aligner(reference, query, tmppath, id_threshold=0.9, n_threshold=1.0)
+
+    president_df_sort = president_df[["file_in_query", "query_name",
+                                      "query_index"]].sort_values("query_index")
+
+    shutil.rmtree(tmppath, ignore_errors=True)
+
+    assert np.all(president_df_sort.iloc[0:18]["file_in_query"] == "test_combined.fasta")
+    assert np.all(president_df_sort.iloc[19:]["file_in_query"] == "test_combined_b.fasta")
