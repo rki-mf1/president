@@ -79,7 +79,7 @@ def get_filename(file):
     return os.path.splitext(os.path.basename(file))[0]
 
 
-def write_fasta(fileobj, seq, format_sequence=False):
+def write_fasta(fileobj, seq, format_sequence=False, format_pblat=False):
     """
     Write fasta sequence to file.
 
@@ -95,7 +95,11 @@ def write_fasta(fileobj, seq, format_sequence=False):
     -------
         None
     """
-    sequence_header = f">{seq.name} {seq.description}".replace("%space%", " ")
+    # pblat cuts away the description, fiddle around this issue by having the " " decoded as %space%
+    if not format_pblat:
+        sequence_header = f">{seq.name} {seq.description}".replace("%space%", " ")
+    else:
+        sequence_header = f">{seq.name}{seq.description}"
     fileobj.write(sequence_header.rstrip()+"\n")
     if format_sequence:
         # make sure to only store upper case, ACGT symbols. replace all others with "N"s
