@@ -79,7 +79,7 @@ def get_filename(file):
     return os.path.splitext(os.path.basename(file))[0]
 
 
-def write_fasta(fileobj, seq, format_sequence=False):
+def write_fasta(fileobj, seq, format_sequence=False, format_pblat=False):
     """
     Write fasta sequence to file.
 
@@ -95,7 +95,11 @@ def write_fasta(fileobj, seq, format_sequence=False):
     -------
         None
     """
-    sequence_header = f">{seq.name} {seq.description}".replace("%space%", " ")
+    # pblat cuts away the description, fiddle around this issue by having the " " decoded as %space%
+    if not format_pblat:
+        sequence_header = f">{seq.name} {seq.description}".replace("%space%", " ")
+    else:
+        sequence_header = f">{seq.name}{seq.description}"
     fileobj.write(sequence_header.rstrip()+"\n")
     if format_sequence:
         # make sure to only store upper case, ACGT symbols. replace all others with "N"s
@@ -135,14 +139,19 @@ def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
     invalid_fout = open(invalid_name, write_mode)
 
     # iterate over query and split into valid / invalid fasta
+    nvalid = 0
+    ninvalid = 0
     with screed.open(query) as seqfile:
         for seq in seqfile:
+            # print(seq.name)
             if seq.name.replace("%space%", " ") in valid_ids:
+                nvalid += 1
                 write_fasta(valid_fout, seq, format_sequence=True)
             else:
                 write_fasta(invalid_fout, seq)
+                ninvalid += 1
 
-    print(f"Valid sequences written to: {valid_name}")
-    print(f"Invalid sequences written to: {invalid_name}")
+    print(f"Valid (n={nvalid}) sequences written to: {valid_name}")
+    print(f"Invalid (n={ninvalid}) sequences written to: {invalid_name}")
     valid_fout.close()
     invalid_fout.close()
