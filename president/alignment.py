@@ -1,8 +1,10 @@
 """Alignment Modules used in president."""
 import subprocess
 import tempfile
-
+import logging
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 PSL_LABELS = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
               'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
@@ -11,7 +13,7 @@ PSL_LABELS = ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
               'QStarts', 'TStarts']
 
 
-def pblat(threads, reference, query, verbose=0):
+def pblat(threads, reference, query):
     """Perform blat alignment.
 
     Parameters
@@ -22,21 +24,17 @@ def pblat(threads, reference, query, verbose=0):
         file location of reference FASTA.
     query : str
         file location of query FASTA.
-    verbose : bool
-        If True, print pblat command.
 
     Returns
     -------
     alignments.
 
     """
-    print('Running pblat ...')
     _, alignments = tempfile.mkstemp(suffix="_pblat.tsv")
     cmd = f'pblat -threads={threads} {reference} {query} {alignments}'
-    if verbose:
-        print(cmd)
+    logger.info(f'Running pblat with: {cmd}')
     _ = subprocess.check_output(cmd, shell=True)
-    print('Finished pblat.')
+    logger.info('Finished pblat.')
     return alignments
 
 
@@ -63,10 +61,10 @@ def parse_alignment(alignment_file):
         alignments.QName = alignments.QName.astype(str)
 
     except pd.errors.EmptyDataError:
-        print("Error reading pblat output. Perhaps it did not align anything (pandas).")
+        logger.error("Error reading pblat output. Perhaps it did not align anything (pandas).")
         return pd.DataFrame()
 
     except Exception:
-        print("Error reading pblat output. Perhaps it did not align anything (exception).")
+        logger.error("Error reading pblat output. Perhaps it did not align anything (exception).")
         return pd.DataFrame()
     return alignments

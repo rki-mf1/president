@@ -29,15 +29,19 @@ be calculated at the nucleotide level relative to the entire length of the
 reference. Only informative nucleotides (A,T,G,C) are considered identical
 to each other.
 """
-import argparse
-import os
 # authors:
 # RKI MF1;  Martin Hoelzer with great initial help of @phiweger (UKL Leipzig)
 # HPI;      Fabio Malcher Miranda, Sven Giese, Alice Wittig
+import argparse
+import os
 from shutil import which
+import sys
+from datetime import datetime
 import pandas as pd
-
+import logging
 from president import alignment, __version__, statistics, writer, sequence
+
+logger = logging.getLogger(__name__)
 
 
 def is_available(name="pblat"):
@@ -62,7 +66,7 @@ def is_available(name="pblat"):
 
 def aligner(reference_in, query_in_raw, path_out, prefix_out="",
             id_threshold=0.9, n_threshold=0.05,
-            threads=4, store_alignment=False):  # pragma: no cover
+            threads=4, store_alignment=False, verbose=False):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
 
@@ -84,36 +88,60 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         Number of threads to use. The default is 4.
     store_alignment : bool, optional
         Should we store the results of the alignements in the qc metrics table? default is False
+    verbose: bool,
+            if True, print logging information to screen
     Returns
     -------
     datframe,
         result metrics
     """
+    # handle path / prefix input
+    out_dir = os.path.abspath(path_out)
+    preloginfo = ""
+    if not os.path.exists(out_dir):
+        preloginfo = "Creating output directory..."
+        os.makedirs(out_dir, exist_ok=True)
+
+    # create logger
+    logger = logging.getLogger('president')
+    logger.setLevel(logging.DEBUG)
+    # create console handler and set level to debug
+    ch = logging.FileHandler(os.path.join(path_out, f"{prefix_out}president_logger.log"), "w")
+    ch.setLevel(logging.DEBUG)
+    ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+    logger.addHandler(ch)
+
+    if not verbose:
+        sh = logging.StreamHandler(sys.stdout)
+        sh.setLevel(logging.DEBUG)
+        sh.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        logger.addHandler(sh)
+
+    logger.info("Starting Time: {}".format(datetime.now().strftime("%H:%M:%S")))
+    logger.info("Using president version: {}".format(__version__))
+    logger.info(f"Writing files to: {path_out}")
+    logger.info(f"Using the prefix: {prefix_out}_* to store results.")
+
+    logger.info(preloginfo)
+    logger.info(f"Query: {query_in_raw}")
+    logger.info(f"Reference: {reference_in}")
     # Files exist?
-    assert os.path.isfile(reference_in)
-    print(query_in_raw)
+    if not os.path.isfile(reference_in):
+        logger.error(f"Reference {reference_in} does not exist.")
+        raise FileNotFoundError(reference_in)
+
     # make sure input is iterable
     if not isinstance(query_in_raw, list):
         query_in_raw = [query_in_raw]
 
     collect_dfs = []
-    print("##################### Running President ##########################")
+    logger.info("Starting president processing")
     # preprocess fasta files
     query_tmp, query_source = sequence.preprocess(query_in_raw, "_query.fasta")
     reference_tmp, _ = sequence.preprocess(reference_in, "_reference.fasta")
 
     prefix = prefix_out
-    print(f"Running file: {query_tmp}")
     assert os.path.isfile(query_tmp)
-
-    # handle path / prefix input
-    out_dir = os.path.abspath(path_out)
-    if not os.path.exists(out_dir):
-        print("Creating output directory...")
-        os.makedirs(out_dir, exist_ok=True)
-
-    print(f"Writing files to: {out_dir}")
-    print(f"Using the prefix: {prefix}* to store results.")
 
     # check reference fasta
     _ = statistics.count_sequences(reference_tmp)
@@ -129,7 +157,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         query_valid_tmp, evaluation, invalid_ids = \
             statistics.split_valid_sequences(query_tmp, summary_stats_query)
 
-        print(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
+        logger.info(f"Performing alignment with valid sequences (excluding {len(invalid_ids)}).")
     else:
         # make sure mock dataframe looks like regular one
         evaluation = "all_invalid"
@@ -141,7 +169,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     # align sequences if more than 1 sequence passes the initial qc
     if evaluation != "all_invalid":
-        alignment_file = alignment.pblat(threads, reference_tmp, query_valid_tmp, verbose=1)
+        alignment_file = alignment.pblat(threads, reference_tmp, query_valid_tmp)
         # parse statistics from file
         metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
                                                  id_threshold, store_alignment)
@@ -175,12 +203,17 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     os.remove(query_tmp)
     os.remove(reference_tmp)
-    print(metrics)
-    print(metrics.shape)
+    logger.info(metrics)
+    logger.info(metrics.shape)
     collect_dfs.append(metrics)
 
     # if there are more input files to iterate from, concat results
     metrics_all = pd.concat(collect_dfs)
+
+    logger.info("president finished from command:")
+    logger.info(f"Call:'president -r {reference_in} -q {query_in_raw} -p {path_out} "
+                f"-f {prefix_out} -x {id_threshold} -n {n_threshold} -a {store_alignment} "
+                f"-t {threads}'")
     return metrics_all
 
 
@@ -214,10 +247,12 @@ def main():  # pragma: no cover
                         help='add query alignment columns (PSL format)')
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
+    parser.add_argument('-e', '--quite', dest="verbose", action="store_true", default=False,
+                        help="Print log messages also to the screen (False)", required=False)
     args = parser.parse_args()
 
     aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold,
-            args.n_threshold, args.threads, args.store_alignment)
+            args.n_threshold, args.threads, args.store_alignment, args.verbose)
 
 
 if __name__ == "__main__":

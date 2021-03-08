@@ -1,15 +1,18 @@
 """Module to compute alignment statistics."""
+import logging
+import re
+import subprocess
+import tempfile
 from collections import Counter
 from datetime import datetime
-import tempfile
-import subprocess
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 import screed
-import re
 
 from president import alignment, writer
+
+logger = logging.getLogger(__name__)
 
 
 def get_largest_N_gap(sequence):
@@ -272,9 +275,10 @@ def count_sequences(fasta_file, kind="reference"):
     with screed.open(fasta_file) as seqfile:
         nseqs = int(np.sum([1 for i in seqfile]))
 
+    logger.info(f"Fasta: {fasta_file} contains {nseqs} sequences.")
     # valid, only 1 file
     if nseqs == 1:
-        print("Number of references is equal to one (qc passed)")
+        logger.info("Number of references is equal to one (qc passed)")
         return 1
 
     elif (nseqs == 0) | (nseqs > 1):
