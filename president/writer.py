@@ -66,7 +66,10 @@ def init_metrics(n_seqs, extend_cols=False, metrics_df=None, store_alignment=Fal
 
         for coli in needed_cols:
             if "qc_post" in coli:
-                metrics_df[coli] = [False]
+                if metrics_df.shape[0] == 0:
+                    metrics_df[coli] = [False]
+                else:
+                    metrics_df[coli] = metrics_df.shape[0] * [False]
             else:
                 metrics_df[coli] = np.nan
         metrics_df['Date'] = datetime.today().strftime('%Y-%m-%d')
