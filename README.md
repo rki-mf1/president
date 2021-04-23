@@ -25,6 +25,12 @@ Note that `pblat` is a dependency and only runs on Linux. Alternatively, preside
 pip install president
 ```
 
+Another possibility is to use docker images with all dependencies installed:
+
+```
+docker pull rkibioinf/president:latest
+```
+
 #### Usage:
 pypresident installs the package and the pairwise alignment can be run with the following console call:
 
