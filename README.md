@@ -25,7 +25,7 @@ Note that `pblat` is a dependency and only runs on Linux. Alternatively, preside
 pip install president
 ```
 
-Another possibility is to use docker images with all dependencies installed:
+Another possibility is to use a docker image with all dependencies installed:
 
 ```
 docker pull rkibioinf/president:latest
