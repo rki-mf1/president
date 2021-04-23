@@ -59,7 +59,7 @@ deploy-docker:
     DOCKER_DRIVER: overlay2
     # See https://github.com/docker-library/docker/pull/166
     DOCKER_TLS_CERTDIR: ""
-    REPOSITORY: rkibioinformaticspipelines/president
+    REPOSITORY: rkibioinf/president
     PUSHRM: https://github.com/christian-korneck/docker-pushrm/releases/download/v1.7.0/docker-pushrm_linux_amd64
     DOCKERFILE: Dockerfiles/deployment/Dockerfile
   before_script:
