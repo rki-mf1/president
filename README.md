@@ -22,7 +22,7 @@ conda activate president
 Note that `pblat` is a dependency and only runs on Linux. Alternatively, president can be installed with pip in an environment where pblat is in the PATH:
 
 [comment]: # (on pip it is pypresident because there is another package called president)
-[comment]: # (if updated to presiden the wrong package will be installed)
+[comment]: # (if changed to president the wrong package will be installed)
 ```
 pip install pypresident
 ```
