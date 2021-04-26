@@ -66,7 +66,7 @@ def is_available(name="pblat"):
 
 def aligner(reference_in, query_in_raw, path_out, prefix_out="",
             id_threshold=0.9, n_threshold=0.05,
-            threads=4, store_alignment=False, verbose=False):  # pragma: no cover
+            threads=4, store_alignment=False, verbose=False, frameshift=False):  # pragma: no cover
     """
     Align query to the reference and extract qc metrics.
 
@@ -90,6 +90,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         Should we store the results of the alignements in the qc metrics table? default is False
     verbose: bool,
             if True, print logging information to screen
+    frameshift: bool,
+            if True, discard sequences with frameshifts
     Returns
     -------
     datframe,
@@ -169,9 +171,12 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     # align sequences if more than 1 sequence passes the initial qc
     if evaluation != "all_invalid":
-        alignment_file = alignment.pblat(threads, reference_tmp, query_valid_tmp)
+        # Raises error if pblat and diamond are not on path
+        is_available('pblat')
+        is_available('diamond')
+        alignment_pblat = alignment.pblat(threads, reference_tmp, query_valid_tmp)
         # parse statistics from file
-        metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
+        metrics = statistics.nucleotide_identity(alignment_pblat, summary_stats_query,
                                                  id_threshold, store_alignment)
         metrics["qc_is_empty_query"] = False
     else:
@@ -190,6 +195,10 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     metrics["file_in_ref"] = os.path.basename(reference_in)
 
+    # TODO: detect frameshifts and report them
+    metrics["frameshifts_detected"] = metrics.shape[0] * [False]
+    metrics["frameshifts"] = metrics.shape[0] * [""]
+
     # pretify output
     metrics = metrics[metrics.columns.sort_values()]
     # putting the columns with PSL prefix at the end
@@ -199,7 +208,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     # remove temporary files
     if evaluation != "all_invalid":
-        os.remove(alignment_file)
+        os.remove(alignment_pblat)
 
     os.remove(query_tmp)
     os.remove(reference_tmp)
@@ -237,7 +246,7 @@ def main():  # pragma: no cover
                         help='A query sequence is reported as valid, if the percentage of Ns '
                              'is smaller or equal the threshold (def: 0.05)')
     parser.add_argument('-t', '--threads', type=int, default=4,
-                        help='Number of threads to use for pblat.')
+                        help='Number of threads to use for pblat and diamond.')
     parser.add_argument('-p', '--path', required=True,
                         help='Path to be used to store results and FASTA files.')
     parser.add_argument('-f', '--prefix', required=False, default="",
@@ -247,12 +256,16 @@ def main():  # pragma: no cover
                         help='add query alignment columns (PSL format)')
     parser.add_argument('-v', '--version', action='version',
                         version='%(prog)s {version}'.format(version=__version__))
-    parser.add_argument('-e', '--quite', dest="verbose", action="store_true", default=False,
+    parser.add_argument('-d', '--discard_on_frameshift',
+                        required=False, action="store_true",
+                        default=False, dest="frameshift",
+                        help="Discard sequences with frameshifts")
+    parser.add_argument('-e', '--quiet', dest="verbose", action="store_true", default=False,
                         help="Print log messages also to the screen (False)", required=False)
     args = parser.parse_args()
 
     aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold,
-            args.n_threshold, args.threads, args.store_alignment, args.verbose)
+            args.n_threshold, args.threads, args.store_alignment, args.verbose, args.frameshift)
 
 
 if __name__ == "__main__":

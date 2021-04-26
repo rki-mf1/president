@@ -19,7 +19,7 @@ conda create -y -n president -c bioconda -c conda-forge president
 conda activate president
 ```
 
-Note that `pblat` is a dependency and only runs on Linux. Alternatively, president can be installed with pip in an environment where pblat is in the PATH:
+Note that `pblat` and `diamond` are dependencies, and `pblat` only runs on Linux. Alternatively, president can be installed with pip in an environment where pblat and diamond are in the PATH:
 
 ```
 pip install president
