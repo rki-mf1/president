@@ -192,7 +192,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     metrics["file_in_ref"] = os.path.basename(reference_in)
 
-    #TODO: detect frameshifts and report them
+    # TODO: detect frameshifts and report them
     metrics["frameshifts_detected"] = metrics.shape[0] * [False]
     metrics["frameshifts"] = metrics.shape[0] * [""]
 

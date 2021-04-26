@@ -20,8 +20,8 @@ COL_ORDER = ["query_name", "reference_name", "file_in_query", "file_in_ref",
              "qc_post_aligned_all_valid", "qc_valid_length", "qc_valid_nucleotides",
              "qc_valid_pass_nthreshold", "acgt_bases", "iupac_bases",
              "non_iupac_bases", "N_bases", "length_query", "length_reference",
-             "LongestNGap", "Matches", "Mismatches", "frameshifts_detected", "frameshifts", "query_description",
-             "query_index", "Date"]
+             "LongestNGap", "Matches", "Mismatches", "frameshifts_detected",
+             "frameshifts", "query_description", "query_index", "Date"]
 
 
 def init_metrics(n_seqs, extend_cols=False, metrics_df=None, store_alignment=False):

@@ -25,7 +25,7 @@ def test_aligner_combined():
     president_df = pm.aligner(reference_in=reference, query_in_raw=query, id_threshold=0.0,
                               threads=4, path_out=tmppath, store_alignment=False)
     os.remove(tmpfile)
-    assert president_df.shape == (19, 27)
+    assert president_df.shape == (19, 29)
 
 
 def test_empty_alignment():
@@ -38,7 +38,7 @@ def test_empty_alignment():
                               threads=4, path_out=tmppath, n_threshold=0.05, store_alignment=False)
     os.remove(tmpfile)
     assert not president_df["qc_all_valid"].iloc[0]
-    assert president_df.shape == (1, 27)
+    assert president_df.shape == (1, 29)
 
 
 def test_empty_fasta():
@@ -50,7 +50,7 @@ def test_empty_fasta():
     president_df = pm.aligner(reference_in=reference, query_in_raw=query, path_out=tmppath,
                               id_threshold=0.9, threads=4, store_alignment=False)
     os.remove(tmpfile)
-    assert president_df.shape == (1, 27)
+    assert president_df.shape == (1, 29)
 
 
 def test_same_format():
