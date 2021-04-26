@@ -67,8 +67,10 @@ def init_metrics(n_seqs, extend_cols=False, metrics_df=None, store_alignment=Fal
         for coli in needed_cols:
             if "qc_post" in coli:
                 if metrics_df.shape[0] == 0:
+                    # If fasta file is empty then create a single row
                     metrics_df[coli] = [False]
                 else:
+                    # Otherwise create multiple rows for all invalid sequences
                     metrics_df[coli] = metrics_df.shape[0] * [False]
             else:
                 metrics_df[coli] = np.nan
