@@ -21,12 +21,20 @@ conda activate president
 
 Note that `pblat` and `diamond` are dependencies, and `pblat` only runs on Linux. Alternatively, president can be installed with pip in an environment where pblat and diamond are in the PATH:
 
+[comment]: # (on pip it is pypresident because there is another package called president)
+[comment]: # (if changed to president the wrong package will be installed)
 ```
-pip install president
+pip install pypresident
+```
+
+Another possibility is to use a docker image with all dependencies installed:
+
+```
+docker pull rkibioinf/president:latest
 ```
 
 #### Usage:
-pypresident installs the package and the pairwise alignment can be run with the following console call:
+The pairwise alignment can be run with the following console call:
 
 ```
 president --query query.fasta --reference reference.fasta -x identity_threshold -n n_threshold -t threads -p /path/to/output/ -f prefix

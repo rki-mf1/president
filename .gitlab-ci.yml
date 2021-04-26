@@ -45,3 +45,31 @@ deploy-pypi:
     - TWINE_PASSWORD=$PYPI_TOKEN TWINE_USERNAME=__token__ python -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
   only:
     - tags
+
+
+deploy-docker:
+  image: docker:latest
+  stage: deploy
+  services:
+    - name: docker:dind
+      entrypoint: ["env", "-u", "DOCKER_HOST"]
+      command: ["dockerd-entrypoint.sh"]
+  variables:
+    DOCKER_HOST: tcp://docker:2375/
+    DOCKER_DRIVER: overlay2
+    # See https://github.com/docker-library/docker/pull/166
+    DOCKER_TLS_CERTDIR: ""
+    REPOSITORY: rkibioinf/president
+    PUSHRM: https://github.com/christian-korneck/docker-pushrm/releases/download/v1.7.0/docker-pushrm_linux_amd64
+    DOCKERFILE: Dockerfiles/deployment/Dockerfile
+  before_script:
+    - mkdir -p $HOME/.docker/cli-plugins/
+    - wget -O $HOME/.docker/cli-plugins/docker-pushrm $PUSHRM
+    - chmod +x $HOME/.docker/cli-plugins/docker-pushrm
+  script:
+    - docker login --username $DOCKER_HUB_USERNAME --password $DOCKER_HUB_PASSWORD
+    - docker build -t $REPOSITORY:$CI_COMMIT_TAG -t $REPOSITORY:latest --file $DOCKERFILE .
+    - docker push $REPOSITORY --all-tags
+    - docker pushrm $REPOSITORY
+  only:
+    - tags

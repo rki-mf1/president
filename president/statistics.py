@@ -60,7 +60,8 @@ def summarize_query(query):
             seq = qry.sequence
 
             # sequence info
-            statistics_ar["query_name"][idx] = qry.name
+            # Remove placeholder %space%
+            statistics_ar["query_name"][idx] = qry.name.replace("%space%", " ")
             statistics_ar["query_description"][idx] = qry.description
             statistics_ar["query_index"][idx] = idx
 
