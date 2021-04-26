@@ -171,9 +171,12 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     # align sequences if more than 1 sequence passes the initial qc
     if evaluation != "all_invalid":
-        alignment_file = alignment.pblat(threads, reference_tmp, query_valid_tmp)
+        # Raises error if pblat and diamond are not on path
+        is_available('pblat')
+        is_available('diamond')
+        alignment_pblat = alignment.pblat(threads, reference_tmp, query_valid_tmp)
         # parse statistics from file
-        metrics = statistics.nucleotide_identity(alignment_file, summary_stats_query,
+        metrics = statistics.nucleotide_identity(alignment_pblat, summary_stats_query,
                                                  id_threshold, store_alignment)
         metrics["qc_is_empty_query"] = False
     else:
@@ -205,7 +208,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     # remove temporary files
     if evaluation != "all_invalid":
-        os.remove(alignment_file)
+        os.remove(alignment_pblat)
 
     os.remove(query_tmp)
     os.remove(reference_tmp)
@@ -243,7 +246,7 @@ def main():  # pragma: no cover
                         help='A query sequence is reported as valid, if the percentage of Ns '
                              'is smaller or equal the threshold (def: 0.05)')
     parser.add_argument('-t', '--threads', type=int, default=4,
-                        help='Number of threads to use for pblat.')
+                        help='Number of threads to use for pblat and diamond.')
     parser.add_argument('-p', '--path', required=True,
                         help='Path to be used to store results and FASTA files.')
     parser.add_argument('-f', '--prefix', required=False, default="",
