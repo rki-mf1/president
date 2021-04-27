@@ -64,7 +64,7 @@ def is_available(name="pblat"):
         raise ValueError(f'{name} not on PATH or marked as executable.')
 
 
-def aligner(reference_in, query_in_raw, path_out, prefix_out="",
+def aligner(reference_genome_in, reference_cds_in, query_in_raw, path_out, prefix_out="",
             id_threshold=0.9, n_threshold=0.05,
             threads=4, store_alignment=False, verbose=False, frameshift=False):  # pragma: no cover
     """
@@ -72,7 +72,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     Parameters
     ----------
-    reference_in : str
+    reference_genome_in : str
         reference FASTA location
     query_in_raw : str / list
         query FASTA location(s).
@@ -126,11 +126,12 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
 
     logger.info(preloginfo)
     logger.info(f"Query: {query_in_raw}")
-    logger.info(f"Reference: {reference_in}")
+    logger.info(f"Reference genome: {reference_genome_in}")
+    logger.info(f"Reference CDS: {reference_cds_in}")
     # Files exist?
-    if not os.path.isfile(reference_in):
-        logger.error(f"Reference {reference_in} does not exist.")
-        raise FileNotFoundError(reference_in)
+    if not os.path.isfile(reference_genome_in):
+        logger.error(f"Reference {reference_genome_in} does not exist.")
+        raise FileNotFoundError(reference_genome_in)
 
     # make sure input is iterable
     if not isinstance(query_in_raw, list):
@@ -140,19 +141,19 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
     logger.info("Starting president processing")
     # preprocess fasta files
     query_tmp, query_source = sequence.preprocess(query_in_raw, "_query.fasta")
-    reference_tmp, _ = sequence.preprocess(reference_in, "_reference.fasta")
+    reference_genome_tmp, _ = sequence.preprocess(reference_genome_in, "_reference_genome.fasta")
 
     prefix = prefix_out
     assert os.path.isfile(query_tmp)
 
     # check reference fasta
-    _ = statistics.count_sequences(reference_tmp)
+    _ = statistics.count_sequences(reference_genome_tmp)
     query_valid = statistics.count_sequences(query_tmp, "query")
 
     # check query data
     if query_valid:
         summary_stats_query = statistics.summarize_query(query_tmp)
-        statistics.qc_check(reference_tmp, summary_stats_query, id_threshold=id_threshold,
+        statistics.qc_check(reference_genome_tmp, summary_stats_query, id_threshold=id_threshold,
                             n_threshold=n_threshold)
 
         # perform initial sequence check
@@ -174,7 +175,8 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         # Raises error if pblat and diamond are not on path
         is_available('pblat')
         is_available('diamond')
-        alignment_pblat = alignment.pblat(threads, reference_tmp, query_valid_tmp)
+        alignment_pblat = alignment.pblat(threads, reference_genome_tmp, query_valid_tmp)
+        alignment_diamond = alignment.diamond(threads, reference_cds_in, query_valid_tmp)
         # parse statistics from file
         metrics = statistics.nucleotide_identity(alignment_pblat, summary_stats_query,
                                                  id_threshold, store_alignment)
@@ -193,7 +195,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
     else:
         metrics["file_in_query"] = 'NaN'
 
-    metrics["file_in_ref"] = os.path.basename(reference_in)
+    metrics["file_in_ref"] = os.path.basename(reference_genome_in)
 
     # TODO: detect frameshifts and report them
     metrics["frameshifts_detected"] = metrics.shape[0] * [False]
@@ -211,7 +213,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
         os.remove(alignment_pblat)
 
     os.remove(query_tmp)
-    os.remove(reference_tmp)
+    os.remove(reference_genome_tmp)
     logger.info(metrics)
     logger.info(metrics.shape)
     collect_dfs.append(metrics)
@@ -220,7 +222,7 @@ def aligner(reference_in, query_in_raw, path_out, prefix_out="",
     metrics_all = pd.concat(collect_dfs)
 
     logger.info("president finished from command:")
-    logger.info(f"Call:'president -r {reference_in} -q {query_in_raw} -p {path_out} "
+    logger.info(f"Call:'president -r {reference_genome_in} -q {query_in_raw} -p {path_out} "
                 f"-f {prefix_out} -x {id_threshold} -n {n_threshold} -a {store_alignment} "
                 f"-t {threads}'")
     return metrics_all
@@ -236,7 +238,8 @@ def main():  # pragma: no cover
 
     """
     parser = argparse.ArgumentParser(description='Calculate pairwise nucleotide identity.')
-    parser.add_argument('-r', '--reference', required=True, help='Reference genome.')
+    parser.add_argument('-r', '--reference', default="reference_genome.fasta", required=False, help='Reference genome [default: NC_045512.2].')
+    parser.add_argument('-c', '--cds', required=False, default="reference_cds.fasta", help='CDS for reference genome [default: NC_045512.2].')
     parser.add_argument('-q', '--query', required=True, help='Query genome(s).', nargs="+")
     parser.add_argument('-x', '--id_threshold', type=float, default=0.9,
                         help='ACGT nucleotide identity threshold after alignment (percentage). '
@@ -246,7 +249,7 @@ def main():  # pragma: no cover
                         help='A query sequence is reported as valid, if the percentage of Ns '
                              'is smaller or equal the threshold (def: 0.05)')
     parser.add_argument('-t', '--threads', type=int, default=4,
-                        help='Number of threads to use for pblat and diamond.')
+                        help='Number of threads to use for pblat and diamond [default: 4].')
     parser.add_argument('-p', '--path', required=True,
                         help='Path to be used to store results and FASTA files.')
     parser.add_argument('-f', '--prefix', required=False, default="",
@@ -259,12 +262,12 @@ def main():  # pragma: no cover
     parser.add_argument('-d', '--discard_on_frameshift',
                         required=False, action="store_true",
                         default=False, dest="frameshift",
-                        help="Discard sequences with frameshifts")
+                        help="Discard sequences with frameshifts.")
     parser.add_argument('-e', '--quiet', dest="verbose", action="store_true", default=False,
                         help="Print log messages also to the screen (False)", required=False)
     args = parser.parse_args()
 
-    aligner(args.reference, args.query, args.path, args.prefix, args.id_threshold,
+    aligner(args.reference, args.cds, args.query, args.path, args.prefix, args.id_threshold,
             args.n_threshold, args.threads, args.store_alignment, args.verbose, args.frameshift)
 
 
