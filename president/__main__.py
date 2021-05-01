@@ -197,9 +197,9 @@ def aligner(reference_genome_in, reference_cds_in, query_in_raw, path_out, prefi
 
     metrics["file_in_ref"] = os.path.basename(reference_genome_in)
 
-    # TODO: detect frameshifts and report them
-    metrics["frameshifts_detected"] = metrics.shape[0] * [False]
-    metrics["frameshifts"] = metrics.shape[0] * [""]
+    metrics["frameshifts_detected"] = metrics.shape[0] * ['']
+    metrics["frameshifts"] = [[] for _ in range(len(metrics))]
+    statistics.detect_frameshifts(alignment_diamond, metrics)
 
     # pretify output
     metrics = metrics[metrics.columns.sort_values()]
