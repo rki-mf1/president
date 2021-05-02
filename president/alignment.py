@@ -47,7 +47,7 @@ def diamond(threads, reference, query):
     threads : int
         Number of threads to use.
     reference : str
-        file location of reference FASTA with CDS.
+        file location of reference FASTP with CDS.
     query : str
         file location of query in FASTA format.
 

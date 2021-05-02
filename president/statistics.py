@@ -423,6 +423,7 @@ def detect_frameshifts(alignment_diamond, metrics):
     None.
 
     """
+    logger.info("Detecting frameshifts")
     dictionary = {}
     for i in range(metrics.shape[0]):
         dictionary[metrics.loc[i, 'query_name']] = i

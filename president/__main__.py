@@ -122,6 +122,19 @@ def aligner(reference_genome_in, reference_cds_in, query_in_raw, path_out, prefi
         logger.addHandler(sh)
 
     logger.info("Starting Time: {}".format(datetime.now().strftime("%H:%M:%S")))
+    # Download reference files if not provided by user
+    if reference_genome_in == "":
+        url = (
+            "https://gitlab.com/RKIBioinformaticsPipelines/"
+            "president/-/raw/master/tests/fixtures/NC_045512.2.fasta"
+        )
+        reference_genome_in = writer.download(url, "_genome.fasta")
+    if reference_cds_in == "":
+        url = (
+            "https://gitlab.com/RKIBioinformaticsPipelines/"
+            "president/-/raw/master/tests/fixtures/NC_045512.2_cds.fasta"
+        )
+        reference_cds_in = writer.download(url, "_cds.fasta")
     logger.info("Using president version: {}".format(__version__))
     logger.info(f"Writing files to: {path_out}")
     logger.info(f"Using the prefix: {prefix_out}_* to store results.")
@@ -214,6 +227,7 @@ def aligner(reference_genome_in, reference_cds_in, query_in_raw, path_out, prefi
     # remove temporary files
     if evaluation != "all_invalid":
         os.remove(alignment_pblat)
+        os.remove(alignment_diamond)
 
     os.remove(query_tmp)
     os.remove(reference_genome_tmp)
@@ -241,10 +255,10 @@ def main():  # pragma: no cover
 
     """
     parser = argparse.ArgumentParser(description='Calculate pairwise nucleotide identity.')
-    parser.add_argument('-r', '--reference', default="reference_genome.fasta", required=False,
+    parser.add_argument('-r', '--reference', default="", required=False,
                         help='Reference genome [default: NC_045512.2].')
-    parser.add_argument('-c', '--cds', required=False, default="reference_cds.fasta",
-                        help='CDS for reference genome [default: NC_045512.2].')
+    parser.add_argument('-c', '--cds', required=False, default="",
+                        help='CDS proteins for reference genome [default: NC_045512.2].')
     parser.add_argument('-q', '--query', required=True, help='Query genome(s).', nargs="+")
     parser.add_argument('-x', '--id_threshold', type=float, default=0.9,
                         help='ACGT nucleotide identity threshold after alignment (percentage). '

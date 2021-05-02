@@ -2,7 +2,8 @@
 import logging
 import os
 from datetime import datetime
-
+import urllib.request
+import tempfile
 import numpy as np
 import screed
 
@@ -171,3 +172,28 @@ def write_sequences(query, metrics, out_dir, evaluation, write_mode="w"):
     logger.info(f"Invalid (n={ninvalid}) sequences written to: {invalid_name}")
     valid_fout.close()
     invalid_fout.close()
+
+
+def download(url, suffix):
+    """Download a file.
+
+    Parameters
+    ----------
+    url : str
+        URL of the file.
+    suffix : str
+        Suffix to store temporary file
+
+    Returns
+    -------
+    location of downloaded file.
+
+    """
+    logger.info(f"Downloading file {url}")
+    _, path = tempfile.mkstemp(suffix=suffix)
+    try:
+        urllib.request.urlretrieve(url, path)
+    except urllib.error.URLError as e:
+        raise Exception(f"Error downloading file {url}\n{e.reason}")
+    logger.info(f"File stored at {path}")
+    return path
