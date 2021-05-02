@@ -61,7 +61,11 @@ def diamond(threads, reference, query):
     makedb = f'diamond makedb --in {reference} -d {db}'
     logger.info(f'Running diamond makedb with: {makedb}')
     _ = subprocess.check_output(makedb, shell=True)
-    blastx = f'diamond blastx -d {db} --threads {threads} --outfmt 5 --frameshift 15 -q {query} -o {alignments}'
+    blastx = (
+        f'diamond blastx -d {db} --threads {threads}'
+        f' --outfmt 5 --frameshift 15 -q {query} -o {alignments}'
+    )
+    print(blastx)
     logger.info(f'Running diamond blastx with: {blastx}')
     _ = subprocess.check_output(blastx, shell=True)
     os.remove(db + ".dmnd")

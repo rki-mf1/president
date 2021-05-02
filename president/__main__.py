@@ -199,7 +199,8 @@ def aligner(reference_genome_in, reference_cds_in, query_in_raw, path_out, prefi
 
     metrics["frameshifts_detected"] = metrics.shape[0] * ['']
     metrics["frameshifts"] = [[] for _ in range(len(metrics))]
-    statistics.detect_frameshifts(alignment_diamond, metrics)
+    if evaluation != "all_invalid":
+        statistics.detect_frameshifts(alignment_diamond, metrics)
 
     # pretify output
     metrics = metrics[metrics.columns.sort_values()]
@@ -238,8 +239,10 @@ def main():  # pragma: no cover
 
     """
     parser = argparse.ArgumentParser(description='Calculate pairwise nucleotide identity.')
-    parser.add_argument('-r', '--reference', default="reference_genome.fasta", required=False, help='Reference genome [default: NC_045512.2].')
-    parser.add_argument('-c', '--cds', required=False, default="reference_cds.fasta", help='CDS for reference genome [default: NC_045512.2].')
+    parser.add_argument('-r', '--reference', default="reference_genome.fasta", required=False,
+                        help='Reference genome [default: NC_045512.2].')
+    parser.add_argument('-c', '--cds', required=False, default="reference_cds.fasta",
+                        help='CDS for reference genome [default: NC_045512.2].')
     parser.add_argument('-q', '--query', required=True, help='Query genome(s).', nargs="+")
     parser.add_argument('-x', '--id_threshold', type=float, default=0.9,
                         help='ACGT nucleotide identity threshold after alignment (percentage). '

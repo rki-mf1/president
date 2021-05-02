@@ -9,7 +9,6 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import screed
-#import xmltodict as xd
 from lxml import etree
 
 from president import alignment, writer
@@ -410,6 +409,20 @@ def count_nucleotides(sequence):
 
 
 def detect_frameshifts(alignment_diamond, metrics):
+    """Detect frameshifts from diamond alignment.
+
+    Parameters
+    ----------
+    alignment_diamond : str
+        Diamond alignment in XML format.
+    metrics : dataframe
+        pandas dataframe filled with valid and aligned columnns.
+
+    Returns
+    -------
+    None.
+
+    """
     dictionary = {}
     for i in range(metrics.shape[0]):
         dictionary[metrics.loc[i, 'query_name']] = i
@@ -418,25 +431,29 @@ def detect_frameshifts(alignment_diamond, metrics):
     tree = etree.parse(alignment_diamond, parser)
     for iteration in tree.getroot().iter("Iteration"):
         iteration_children = iteration.getchildren()
-        query_name = iteration_children[2].text.replace("%space%", " ") # query_name
+        query_name = iteration_children[2].text.replace("%space%", " ")  # query_name
         for hit in iteration_children[4].iter("Hit"):
             hit_children = hit.getchildren()
-            gene = re.findall("\[gene=(.*?)\]", hit_children[2].text)[0] # gene
+            gene = re.findall("\[gene=(.*?)\]", hit_children[2].text)[0]  # gene
             for hsp in hit_children[5].iter("Hsp"):
                 hsp_children = hsp.getchildren()
-                query_start = hsp_children[4].text # query_start
-                query_end = hsp_children[5].text # query_end
-                query_seq = hsp_children[14].text # query_seq
+                query_start = hsp_children[4].text  # query_start
+#                query_end = hsp_children[5].text  # query_end
+                query_seq = hsp_children[14].text  # query_seq
                 index = int(query_start)
                 for char in query_seq:
                     if char == '/':
                         # deletion
                         metrics.loc[dictionary[query_name], 'frameshifts_detected'] = True
-                        metrics.loc[dictionary[query_name], 'frameshifts'].append("DEL" + str(index))
+                        metrics.loc[dictionary[query_name], 'frameshifts'].append(
+                            gene + ":DEL" + str(index)
+                        )
                     elif char == '\\':
                         # insertion
                         metrics.loc[dictionary[query_name], 'frameshifts_detected'] = True
-                        metrics.loc[dictionary[query_name], 'frameshifts'].append("INS" + str(index))
+                        metrics.loc[dictionary[query_name], 'frameshifts'].append(
+                            gene + ":INS" + str(index)
+                        )
                         index = index + 1
                     elif char != '-':
                         index = index + 3
