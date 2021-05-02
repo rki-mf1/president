@@ -4,6 +4,7 @@ import shutil
 
 import screed
 import pandas as pd
+import hashlib
 
 from president import writer
 
@@ -81,3 +82,16 @@ def test_trailing_whitespace():
 
     # test if trailing whitespace
     assert not header[:-1].endswith(" ")
+
+
+def test_download():
+    expected_md5sum = "f89b59a16cac6fea465d41fb98e16fac"
+    url = (
+        "https://gitlab.com/RKIBioinformaticsPipelines/president/"
+        "-/raw/master/tests/fixtures/NC_045512.2_cds.fasta"
+    )
+    suffix = "_cds.fasta"
+    path = writer.download(url, suffix)
+    sequences = open(path, "r", encoding='utf-8').read().encode()
+    md5sum = hashlib.md5(sequences).hexdigest()
+    assert md5sum == expected_md5sum
