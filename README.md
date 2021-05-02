@@ -15,11 +15,11 @@ Given a reference and a query sequence, calculate pairwise nucleotide identity w
 To install president with conda, run the commands below:
 
 ```
-conda create -y -n president -c bioconda -c conda-forge president
+conda create -y -n president -c bioconda -c anaconda -c conda-forge president
 conda activate president
 ```
 
-Note that `pblat` and `diamond` are dependencies. While `diamond` runs on maxOS and Linux, `pblat` only runs on Linux. Alternatively, president can be installed with pip in an environment where pblat and diamond are in the PATH:
+Note that `lxml`, `pblat` and `diamond` are dependencies. While `lxml` is multiplatform, `diamond` runs on maxOS and Linux and `pblat` only runs on Linux. Alternatively, president can be installed with pip in an environment where lxml, pblat and diamond are in the PATH:
 
 [comment]: # (on pip it is pypresident because there is another package called president)
 [comment]: # (if changed to president the wrong package will be installed)

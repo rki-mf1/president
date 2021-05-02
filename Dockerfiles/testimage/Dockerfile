@@ -7,5 +7,6 @@ pytest-flake8 \
 pytest-pydocstyle \
 pandas \
 screed \
+lxml \
 --quiet && \
-conda install -c bioconda -c anaconda lxml pblat diamond -y
+conda install -c bioconda pblat diamond -y

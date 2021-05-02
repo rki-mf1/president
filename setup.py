@@ -25,10 +25,10 @@ URL_ISSUES = "https://gitlab.com/RKIBioinformaticsPipelines/president/-/issues"
 EMAIL = 'HoelzerM@rki.de'
 AUTHOR = 'Martin Hölzer'
 REQUIRES_PYTHON = '>=3.8.0'
-KEYWORDS = ["sequence alignment", "corona", "pblat", "SARS-COV2"]
+KEYWORDS = ["sequence alignment", "corona", "pblat", "diamond", "SARS-COV2"]
 RKI_SOFTWARE = "https://gitlab.com/RKIBioinformaticsPipelines"
 # What packages are required for this module to be executed?
-REQUIRED = ['pandas', 'screed', 'numpy']
+REQUIRED = ['pandas', 'screed', 'numpy', 'lxml']
 
 # What packages are optional?
 # 'fancy feature': ['django'],}
