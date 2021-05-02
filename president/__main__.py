@@ -290,5 +290,17 @@ def main():  # pragma: no cover
             args.n_threshold, args.threads, args.store_alignment, args.verbose, args.frameshift)
 
 
-if __name__ == "__main__":
-    main()
+def init():
+    """
+    Allow to create a test to cover the main function.
+
+    Returns
+    -------
+    None.
+
+    """
+    if __name__ == "__main__":
+        sys.exit(main())
+
+
+init()

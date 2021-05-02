@@ -1,6 +1,6 @@
 import os
 import tempfile
-
+import mock
 import numpy as np
 import pytest
 import screed
@@ -152,3 +152,12 @@ def test_combined_query_names():
 
     assert np.all(president_df_sort.iloc[0:18]["file_in_query"] == "test_combined.fasta")
     assert np.all(president_df_sort.iloc[19:]["file_in_query"] == "test_combined_b.fasta")
+
+
+def test_init():
+    from president import __main__
+    with mock.patch.object(__main__, "main", return_value=42):
+        with mock.patch.object(__main__, "__name__", "__main__"):
+            with mock.patch.object(__main__.sys, 'exit') as mock_exit:
+                __main__.init()
+                assert mock_exit.call_args[0][0] == 42
