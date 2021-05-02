@@ -8,5 +8,6 @@ pytest-pydocstyle \
 pandas \
 screed \
 lxml \
+mock \
 --quiet && \
 conda install -c bioconda pblat diamond -y
