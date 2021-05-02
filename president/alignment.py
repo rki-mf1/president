@@ -65,7 +65,6 @@ def diamond(threads, reference, query):
         f'diamond blastx -d {db} --threads {threads}'
         f' --outfmt 5 --frameshift 15 -q {query} -o {alignments}'
     )
-    print(blastx)
     logger.info(f'Running diamond blastx with: {blastx}')
     _ = subprocess.check_output(blastx, shell=True)
     os.remove(db + ".dmnd")

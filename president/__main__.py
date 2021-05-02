@@ -74,6 +74,8 @@ def aligner(reference_genome_in, reference_cds_in, query_in_raw, path_out, prefi
     ----------
     reference_genome_in : str
         reference FASTA location
+    reference_cds_in : str
+        reference's CDS FASTA location
     query_in_raw : str / list
         query FASTA location(s).
     path_out : str
