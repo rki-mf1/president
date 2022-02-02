@@ -165,6 +165,7 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
     alignments = alignments.drop_duplicates(subset=["QName"], keep="first").reset_index()
     alignments.columns = "pblat_" + alignments.columns
 
+
     idmap = {i: j for i, j in
              zip(summary_stats_query["query_name"].str.replace("%space%", " "),
                  summary_stats_query["query_index"])}
@@ -175,16 +176,18 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
     president_df = summary_stats_query.merge(alignments, left_on="query_index",
                                              right_on="query_index", how="left",
                                              suffixes=("", "_pblat"))
-
+    
     president_df["identities"] = np.nan
     president_df["ambiguous_identities"] = np.nan
     president_df["iupac_ambiguous_identities"] = np.nan
     president_df["qc_post_aligned"] = False
 
     # get ids of values to overwrite
-    idx = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap).values
+    idx = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap).values[0]
 
-    president_df.at[idx, "qc_post_aligned"] = True
+    
+    president_df.at[idx, 'qc_post_aligned'] = True
+
     # Metric valid_sequences #2 (A)
     # Ns in the query count as mismatch
     president_df.at[idx, "identities"] = \
