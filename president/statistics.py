@@ -184,6 +184,8 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
 
     # get ids of values to overwrite
     idx = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap).values[0]
+
+    
     president_df.at[idx, 'qc_post_aligned'] = True
 
     # Metric valid_sequences #2 (A)
