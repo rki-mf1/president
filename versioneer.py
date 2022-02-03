@@ -1197,6 +1197,7 @@ version_json = '''
 
 
 def get_versions():
+    \"\"\"Get versions short version.\"\"\"
     return json.loads(version_json)
 """
 

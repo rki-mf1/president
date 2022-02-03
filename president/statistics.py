@@ -165,7 +165,6 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
     alignments = alignments.drop_duplicates(subset=["QName"], keep="first").reset_index()
     alignments.columns = "pblat_" + alignments.columns
 
-
     idmap = {i: j for i, j in
              zip(summary_stats_query["query_name"].str.replace("%space%", " "),
                  summary_stats_query["query_index"])}
@@ -176,32 +175,31 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
     president_df = summary_stats_query.merge(alignments, left_on="query_index",
                                              right_on="query_index", how="left",
                                              suffixes=("", "_pblat"))
-    
+
     president_df["identities"] = np.nan
     president_df["ambiguous_identities"] = np.nan
     president_df["iupac_ambiguous_identities"] = np.nan
     president_df["qc_post_aligned"] = False
 
     # get ids of values to overwrite
-    idx = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap).values[0]
+    idx = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap).values
 
-    
-    president_df.at[idx, 'qc_post_aligned'] = True
+    president_df.loc[president_df.index[idx], 'qc_post_aligned'] = True
 
     # Metric valid_sequences #2 (A)
     # Ns in the query count as mismatch
-    president_df.at[idx, "identities"] = \
+    president_df.loc[president_df.index[idx], "identities"] = \
         president_df["pblat_Matches"] / president_df[["pblat_TSize", "length_query"]].max(axis=1)
 
     # Ns in the query don't count
     # q=query, t=target sequence length
-    president_df.at[idx, "ambiguous_identities"] = \
+    president_df.loc[president_df.index[idx], "ambiguous_identities"] = \
         president_df["pblat_Matches"] / \
         (president_df[["pblat_TSize", "length_query"]].max(axis=1) - president_df["N_bases"])
 
     # Ns in the query don't count
     # q=query, t=target sequence length
-    president_df.at[idx, "iupac_ambiguous_identities"] = \
+    president_df.loc[president_df.index[idx], "iupac_ambiguous_identities"] = \
         president_df["pblat_Matches"] / \
         (president_df[["pblat_TSize", "length_query"]].max(axis=1)
          - president_df[["iupac_bases", "non_iupac_bases"]].sum(axis=1))
