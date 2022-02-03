@@ -1,6 +1,7 @@
 FROM continuumio/miniconda3
 
-RUN pip install flake8 \
+RUN pip install \
+'flake8<=3.8.4' \
 pytest \
 pytest-cov \
 pytest-flake8 \
