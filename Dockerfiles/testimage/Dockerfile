@@ -1,4 +1,4 @@
-FROM continuumio/miniconda3
+FROM continuumio/miniconda3:latest
 
 RUN pip install \
 'flake8<=3.8.4' \
