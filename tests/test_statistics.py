@@ -299,7 +299,9 @@ def test_nucleotide_counts():
     assert exp_tuple == results
 
 
-@pytest.mark.skipif(which("pblat") is None, reason="do not run if pblat is not installed")
+@pytest.mark.skipif(
+    which("pblat") is None, reason="do not run if pblat is not installed"
+)
 def test_not_aligned():
     reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
     query = os.path.join(fixtures_loc, "test_unmapped.fasta")
