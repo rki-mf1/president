@@ -1,12 +1,13 @@
 import os
+import shutil
 import tempfile
+from shutil import which
 
 import numpy as np
 import pytest
 import screed
-from president import __main__ as pm
-import shutil
 
+from president import __main__ as pm
 
 fixtures_loc = os.path.join(os.path.dirname(__file__), "fixtures")
 
@@ -16,6 +17,7 @@ def test_isavailable():
         pm.is_available("asdhasdasdasd_tool")
 
 
+@pytest.mark.skipif(which("pblat") is None, reason="do not run if pblat is not installed")
 def test_aligner_combined():
     query = os.path.join(fixtures_loc, "test_combined.fasta")
     # has 19 sequences
@@ -72,6 +74,7 @@ def test_empty_fasta():
     assert president_df.shape == (1, 27)
 
 
+@pytest.mark.skipif(which("pblat") is None, reason="do not run if pblat is not installed")
 def test_same_format():
     # test if aligned and non aligned outputs ahve the same format.
     query = os.path.join(fixtures_loc, "test_combined.fasta")
@@ -107,6 +110,7 @@ def test_same_format():
     assert np.all(president_df.columns == president_df2.columns)
 
 
+@pytest.mark.skipif(which("pblat") is None, reason="do not run if pblat is not installed")
 def test_multi_input():
     query = os.path.join(fixtures_loc, "test_combined.fasta")
     # has 19 sequences
@@ -148,6 +152,7 @@ def test_multi_input():
     assert invalid_n1 * 2 == invalid_n2
 
 
+@pytest.mark.skipif(which("pblat") is None, reason="do not run if pblat is not installed")
 def test_combined_query_names():
     query = [
         os.path.join(fixtures_loc, "test_combined.fasta"),

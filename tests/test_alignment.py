@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from shutil import which
 
 import pandas as pd
+import pytest
+
 from president import alignment
 
 fixtures_loc = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
+@pytest.mark.skipif(which("pblat") is None, reason="do not run if pblat is not installed")
 def test_pblat_simple_10MM():
     # read sample data
     reference = os.path.join(fixtures_loc, "100bp_0N_sample_reference.fasta")

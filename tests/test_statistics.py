@@ -6,10 +6,12 @@ Created on Fri Jan 15 10:15:48 2021
 @author: hanjo
 """
 import os
-import numpy as np
+from shutil import which
 
-import screed
+import numpy as np
 import pytest
+import screed
+
 from president import statistics, alignment
 
 fixtures_loc = os.path.join(os.path.dirname(__file__), "fixtures")
@@ -297,6 +299,7 @@ def test_nucleotide_counts():
     assert exp_tuple == results
 
 
+@pytest.mark.skipif(which("pblat") is None, reason="do not run if pblat is not installed")
 def test_not_aligned():
     reference = os.path.join(fixtures_loc, "NC_045512.2.fasta")
     query = os.path.join(fixtures_loc, "test_unmapped.fasta")
