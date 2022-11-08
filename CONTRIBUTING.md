@@ -10,7 +10,7 @@ Please make sure all tests pass before submitting a pull request. It is also goo
 
 ## Testing the code locally
 
-To test the code locally you need to install the dependencies for the library in the current environment. Additionally, you need to install the dependencies for testing and pblat. All of those dependencies can be installed with:
+To test the code locally, you need to install the dependencies for the library in the current environment. Additionally, you need to install the dependencies for testing and pblat. All of those dependencies can be installed with:
 
 ```
 pip install --upgrade pip
