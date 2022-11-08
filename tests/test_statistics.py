@@ -12,17 +12,17 @@ import screed
 import pytest
 from president import statistics, alignment
 
-fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
+fixtures_loc = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 def test_statistics_nthreshold():
     query = os.path.join(fixtures_loc, "100bp_5N_05MM_sample_query.fasta")
 
     qc_stats_pass = statistics.summarize_query(query)
-    statistics.qc_check(100, qc_stats_pass, id_threshold=.93, n_threshold=0.05)
+    statistics.qc_check(100, qc_stats_pass, id_threshold=0.93, n_threshold=0.05)
 
     qc_stats_fail = statistics.summarize_query(query)
-    statistics.qc_check(100, qc_stats_fail, id_threshold=.93, n_threshold=0.04)
+    statistics.qc_check(100, qc_stats_fail, id_threshold=0.93, n_threshold=0.04)
     assert qc_stats_pass["qc_valid_pass_nthreshold"].iloc[0]
     assert not qc_stats_fail["qc_valid_pass_nthreshold"].iloc[0]
 
@@ -32,7 +32,7 @@ def test_statistics():
     query = os.path.join(fixtures_loc, "100bp_0N_05MM_sample_query.fasta")
 
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(100, qc_stats, id_threshold=.93)
+    statistics.qc_check(100, qc_stats, id_threshold=0.93)
     metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.9)
 
     exp_ident = 0.95
@@ -43,7 +43,9 @@ def test_statistics():
 
     assert exp_ident == metrics["ACGT Nucleotide identity"].iloc[0]
     assert exp_valid == metrics["qc_post_aligned_all_valid"].iloc[0]
-    assert exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].iloc[0]
+    assert (
+        exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].iloc[0]
+    )
     assert exp_ambig_bases == metrics["iupac_bases"].iloc[0]
     assert exp_length_query == metrics["length_query"].iloc[0]
 
@@ -53,7 +55,7 @@ def test_multi_statistics():
     query = os.path.join(fixtures_loc, "100bp_multi.fasta")
 
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(100, qc_stats, id_threshold=.91)
+    statistics.qc_check(100, qc_stats, id_threshold=0.91)
     metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.91)
     metrics = metrics.sort_values(by="query_name")
 
@@ -69,7 +71,9 @@ def test_multi_statistics():
     assert np.all(exp_IDS == metrics["query_name"])
     assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_invalid == metrics["qc_post_aligned_all_valid"].values)
-    assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
+    assert np.all(
+        exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values
+    )
     assert np.all(exp_ambig_bases == metrics["iupac_bases"].values)
     assert np.all(exp_length_query == metrics["length_query"].values)
 
@@ -79,15 +83,19 @@ def test_unmapped():
     query = os.path.join(fixtures_loc, "test_unmapped.fasta")
 
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(29903, qc_stats, id_threshold=.93)
+    statistics.qc_check(29903, qc_stats, id_threshold=0.93)
     metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.9)
     metrics = metrics[metrics["qc_post_aligned"]]
 
-    exp_IDS = np.array(["FAO96286_barcode67/ARTIC/medaka MN908947.3",
-                        "FAO96286_barcode07/ARTIC/medaka MN908947.3",
-                        "FAO96286_barcode21/ARTIC/medaka MN908947.3",
-                        "FAO96286_barcode33/ARTIC/medaka MN908947.3",
-                        "FAO96286_barcode44/ARTIC/medaka MN908947.3"])
+    exp_IDS = np.array(
+        [
+            "FAO96286_barcode67/ARTIC/medaka MN908947.3",
+            "FAO96286_barcode07/ARTIC/medaka MN908947.3",
+            "FAO96286_barcode21/ARTIC/medaka MN908947.3",
+            "FAO96286_barcode33/ARTIC/medaka MN908947.3",
+            "FAO96286_barcode44/ARTIC/medaka MN908947.3",
+        ]
+    )
     exp_idx = np.argsort(exp_IDS)
     exp_IDS = exp_IDS[exp_idx]
     exp_invalid = np.array([False, True, True, True, True])[exp_idx]
@@ -100,7 +108,9 @@ def test_unmapped():
     assert np.all(exp_IDS == metrics["query_name"])
     assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_invalid == metrics["qc_post_aligned_all_valid"].values)
-    assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
+    assert np.all(
+        exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values
+    )
     assert np.all(exp_ambig_bases == metrics["iupac_bases"].values)
     assert np.all(exp_length_query == metrics["length_query"].values)
 
@@ -110,7 +120,7 @@ def test_global_identity():
     query = os.path.join(fixtures_loc, "global_identity.fasta")
 
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(query, qc_stats, id_threshold=.5)
+    statistics.qc_check(query, qc_stats, id_threshold=0.5)
     metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.5)
 
     exp_invalid = [True]
@@ -123,7 +133,9 @@ def test_global_identity():
     assert np.all(exp_IDS == metrics["query_name"])
     assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_invalid == metrics["qc_post_aligned_all_valid"].values)
-    assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
+    assert np.all(
+        exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values
+    )
     assert np.all(exp_ambig_bases == metrics["iupac_bases"].values)
     assert np.all(exp_length_query == metrics["length_query"].values)
 
@@ -149,7 +161,7 @@ def test_repeated_pblat():
     query = os.path.join(fixtures_loc, "test_repeated_pblat.fasta")
 
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(29903, qc_stats, id_threshold=.93)
+    statistics.qc_check(29903, qc_stats, id_threshold=0.93)
     metrics = statistics.nucleotide_identity(alignment_f, qc_stats, id_threshold=0.05)
 
     exp_invalid = [False, True, True, True, True]
@@ -157,16 +169,20 @@ def test_repeated_pblat():
     exp_ambig_identity = [0.9991, 0.9994, 0.9993, 0.9989, 0.9993]
     exp_ambig_bases = [17742, 123, 121, 123, 590]
     exp_length_query = [29903, 29902, 29903, 29896, 29902]
-    exp_IDS = ["FAO96286_barcode67/ARTIC/medaka MN908947.3",
-               "FAO96286_barcode07/ARTIC/medaka MN908947.3",
-               "FAO96286_barcode21/ARTIC/medaka MN908947.3",
-               "FAO96286_barcode33/ARTIC/medaka MN908947.3",
-               "FAO96286_barcode44/ARTIC/medaka MN908947.3"]
+    exp_IDS = [
+        "FAO96286_barcode67/ARTIC/medaka MN908947.3",
+        "FAO96286_barcode07/ARTIC/medaka MN908947.3",
+        "FAO96286_barcode21/ARTIC/medaka MN908947.3",
+        "FAO96286_barcode33/ARTIC/medaka MN908947.3",
+        "FAO96286_barcode44/ARTIC/medaka MN908947.3",
+    ]
 
     assert np.all(exp_IDS == metrics["query_name"])
     assert np.all(exp_ident == metrics["ACGT Nucleotide identity"].values)
     assert np.all(exp_invalid == metrics["qc_post_aligned_all_valid"].values)
-    assert np.all(exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values)
+    assert np.all(
+        exp_ambig_identity == metrics["ACGT Nucleotide identity (ignoring Ns)"].values
+    )
     assert np.all(exp_ambig_bases == metrics["iupac_bases"].values)
     assert np.all(exp_length_query == metrics["length_query"].values)
 
@@ -190,17 +206,17 @@ def test_split_valid_sequences():
 
     # mixed
     qc_stats = statistics.summarize_query(query)
-    statistics.qc_check(reference, qc_stats, id_threshold=.95, n_threshold=0.05)
+    statistics.qc_check(reference, qc_stats, id_threshold=0.95, n_threshold=0.05)
     outfile3, case3, ids3 = statistics.split_valid_sequences(query, qc_stats)
 
     assert case1 == "all_valid"
     assert ids1 == []
 
     assert case2 == "all_invalid"
-    assert np.all(ids2 == ['100bp_5N_5MM_reference', '100bp_10N_5MM_reference'])
+    assert np.all(ids2 == ["100bp_5N_5MM_reference", "100bp_10N_5MM_reference"])
 
     assert case3 == "mixed"
-    assert ids3 == ['100bp_10N_5MM_reference']
+    assert ids3 == ["100bp_10N_5MM_reference"]
 
 
 def test_split_valid_sequences_uneven():
@@ -271,11 +287,13 @@ def test_nucleotide_counts():
     query = os.path.join(fixtures_loc, "test_UPAC_statistics.fasta")
     with screed.open(query) as seqfile:
         results = [statistics.count_nucleotides(seq.sequence) for seq in seqfile]
-    exp_tuple = [(0, 0, 60, 0),  # only X
-                 (4, 1, 0, 1),  # ACGT + N
-                 (96, 1, 0, 0),  # ACGT.... + "."]
-                 (4, 11, 3, 1),  # ACGT + "RYSWKMBDHVN" + ?!-]
-                 (96, 0, 1, 0)]  # ACGT.... + "-"]
+    exp_tuple = [
+        (0, 0, 60, 0),  # only X
+        (4, 1, 0, 1),  # ACGT + N
+        (96, 1, 0, 0),  # ACGT.... + "."]
+        (4, 11, 3, 1),  # ACGT + "RYSWKMBDHVN" + ?!-]
+        (96, 0, 1, 0),
+    ]  # ACGT.... + "-"]
     assert exp_tuple == results
 
 

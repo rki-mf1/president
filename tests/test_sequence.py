@@ -4,7 +4,7 @@ from president import sequence
 import filecmp
 import os
 
-fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
+fixtures_loc = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 def test_remove_spaces():

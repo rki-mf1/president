@@ -115,19 +115,25 @@ def qc_check(reference, query_stats, id_threshold=0.9, n_threshold=0.05):
     query_stats["qc_valid_nucleotides"] = query_stats["non_iupac_bases"] == 0
 
     # check if number of Ns are below threshold
-    query_stats["qc_valid_pass_nthreshold"] = \
-        (query_stats["N_bases"] / query_stats["length_query"]) <= n_threshold
+    query_stats["qc_valid_pass_nthreshold"] = (
+        query_stats["N_bases"] / query_stats["length_query"]
+    ) <= n_threshold
 
     # take the lower bound here (floor)
-    query_stats["qc_valid_length"] = query_stats["length_query"] >= \
-        np.floor(length_ref * id_threshold)
+    query_stats["qc_valid_length"] = query_stats["length_query"] >= np.floor(
+        length_ref * id_threshold
+    )
 
-    query_stats["qc_all_valid"] = query_stats["qc_valid_nucleotides"] & \
-        query_stats["qc_valid_length"] & query_stats["qc_valid_pass_nthreshold"]
+    query_stats["qc_all_valid"] = (
+        query_stats["qc_valid_nucleotides"]
+        & query_stats["qc_valid_length"]
+        & query_stats["qc_valid_pass_nthreshold"]
+    )
 
 
-def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
-                        store_alignment=False):
+def nucleotide_identity(
+    alignment_file, summary_stats_query, id_threshold=0.9, store_alignment=False
+):
     """Calculate nucleotide ident from a 2-sequence MSA.
 
     The query can consists of a multi-fasta file.
@@ -162,19 +168,31 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
         return alignments
 
     # remove redundant alignments, since first entry is best match
-    alignments = alignments.drop_duplicates(subset=["QName"], keep="first").reset_index()
+    alignments = alignments.drop_duplicates(
+        subset=["QName"], keep="first"
+    ).reset_index()
     alignments.columns = "pblat_" + alignments.columns
 
-    idmap = {i: j for i, j in
-             zip(summary_stats_query["query_name"].str.replace("%space%", " "),
-                 summary_stats_query["query_index"])}
+    idmap = {
+        i: j
+        for i, j in zip(
+            summary_stats_query["query_name"].str.replace("%space%", " "),
+            summary_stats_query["query_index"],
+        )
+    }
 
     # retrieve index for joining data
-    alignments["query_index"] = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap)
+    alignments["query_index"] = (
+        alignments["pblat_QName"].str.replace("%space%", " ").map(idmap)
+    )
 
-    president_df = summary_stats_query.merge(alignments, left_on="query_index",
-                                             right_on="query_index", how="left",
-                                             suffixes=("", "_pblat"))
+    president_df = summary_stats_query.merge(
+        alignments,
+        left_on="query_index",
+        right_on="query_index",
+        how="left",
+        suffixes=("", "_pblat"),
+    )
 
     president_df["identities"] = np.nan
     president_df["ambiguous_identities"] = np.nan
@@ -184,36 +202,45 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
     # get ids of values to overwrite
     idx = alignments["pblat_QName"].str.replace("%space%", " ").map(idmap).values
 
-    president_df.loc[president_df.index[idx], 'qc_post_aligned'] = True
+    president_df.loc[president_df.index[idx], "qc_post_aligned"] = True
 
     # Metric valid_sequences #2 (A)
     # Ns in the query count as mismatch
-    president_df.loc[president_df.index[idx], "identities"] = \
-        president_df["pblat_Matches"] / president_df[["pblat_TSize", "length_query"]].max(axis=1)
+    president_df.loc[president_df.index[idx], "identities"] = president_df[
+        "pblat_Matches"
+    ] / president_df[["pblat_TSize", "length_query"]].max(axis=1)
 
     # Ns in the query don't count
     # q=query, t=target sequence length
-    president_df.loc[president_df.index[idx], "ambiguous_identities"] = \
-        president_df["pblat_Matches"] / \
-        (president_df[["pblat_TSize", "length_query"]].max(axis=1) - president_df["N_bases"])
+    president_df.loc[president_df.index[idx], "ambiguous_identities"] = president_df[
+        "pblat_Matches"
+    ] / (
+        president_df[["pblat_TSize", "length_query"]].max(axis=1)
+        - president_df["N_bases"]
+    )
 
     # Ns in the query don't count
     # q=query, t=target sequence length
-    president_df.loc[president_df.index[idx], "iupac_ambiguous_identities"] = \
-        president_df["pblat_Matches"] / \
-        (president_df[["pblat_TSize", "length_query"]].max(axis=1)
-         - president_df[["iupac_bases", "non_iupac_bases"]].sum(axis=1))
+    president_df.loc[
+        president_df.index[idx], "iupac_ambiguous_identities"
+    ] = president_df["pblat_Matches"] / (
+        president_df[["pblat_TSize", "length_query"]].max(axis=1)
+        - president_df[["iupac_bases", "non_iupac_bases"]].sum(axis=1)
+    )
 
     # passed id threshold
-    president_df["qc_post_align_pass_threshold"] = president_df["identities"] >= id_threshold
+    president_df["qc_post_align_pass_threshold"] = (
+        president_df["identities"] >= id_threshold
+    )
 
-    president_df["qc_post_aligned_all_valid"] = president_df["qc_post_align_pass_threshold"] &\
-        president_df["qc_all_valid"]
+    president_df["qc_post_aligned_all_valid"] = (
+        president_df["qc_post_align_pass_threshold"] & president_df["qc_all_valid"]
+    )
     # sort by invalid sequences first
     president_df = president_df.sort_values(by="qc_post_aligned_all_valid")
     president_df = president_df.round(4)
     # add processing date
-    president_df['Date'] = datetime.today().strftime('%Y-%m-%d')
+    president_df["Date"] = datetime.today().strftime("%Y-%m-%d")
 
     if store_alignment:
         align_df = president_df.filter(regex="pblat").copy()
@@ -222,15 +249,20 @@ def nucleotide_identity(alignment_file, summary_stats_query, id_threshold=0.9,
         president_df = pd.concat([president_df, align_df], axis=1)
     # cleanup dataframe and improve reporting format
     president_df = president_df.rename(
-        columns={"pblat_Matches": "Matches",
-                 "pblat_Mismatches": "Mismatches",
-                 "pblat_TName": "reference_name",
-                 "identities": "ACGT Nucleotide identity",
-                 "ambiguous_identities": "ACGT Nucleotide identity (ignoring Ns)",
-                 "iupac_ambiguous_identities": "ACGT Nucleotide identity (ignoring non-ACGTNs)"})
+        columns={
+            "pblat_Matches": "Matches",
+            "pblat_Mismatches": "Mismatches",
+            "pblat_TName": "reference_name",
+            "identities": "ACGT Nucleotide identity",
+            "ambiguous_identities": "ACGT Nucleotide identity (ignoring Ns)",
+            "iupac_ambiguous_identities": "ACGT Nucleotide identity (ignoring non-ACGTNs)",
+        }
+    )
 
     president_df["query_name"] = president_df["query_name"].str.replace("%space%", " ")
-    president_df["reference_name"] = president_df["reference_name"].str.replace("%space%", " ")
+    president_df["reference_name"] = president_df["reference_name"].str.replace(
+        "%space%", " "
+    )
     president_df = president_df.drop(president_df.filter(regex="pblat").columns, axis=1)
     president_df = president_df[sorted(president_df.columns)]
     return president_df
@@ -286,7 +318,9 @@ def count_sequences(fasta_file, kind="reference"):
     elif (nseqs == 0) | (nseqs > 1):
         # if reference, we exactly need one file
         if kind == "reference":
-            raise ValueError(f"Number of reference sequences ({nseqs}) is not equal to 1.")
+            raise ValueError(
+                f"Number of reference sequences ({nseqs}) is not equal to 1."
+            )
         else:
             # if query, only 0 seqs is bad
             if nseqs == 0:
@@ -324,13 +358,20 @@ def split_valid_sequences(query, query_stats, write_mode="w"):
     elif all_valid.sum() == 0:
         # all bad, none of the sequences pass the qc
         invalid_loc = tempfile.mkstemp(suffix="_valid.fasta")[1]
-        return invalid_loc, "all_invalid", \
-            query_stats[~query_stats["qc_all_valid"]]["query_name"].values
+        return (
+            invalid_loc,
+            "all_invalid",
+            query_stats[~query_stats["qc_all_valid"]]["query_name"].values,
+        )
 
     else:
         # some sequences pass qc, others not
-        valid_sequences_idx = set(query_stats[query_stats["qc_all_valid"]]["query_index"].values)
-        invalid_identifier = query_stats[~query_stats["qc_all_valid"]]["query_name"].values
+        valid_sequences_idx = set(
+            query_stats[query_stats["qc_all_valid"]]["query_index"].values
+        )
+        invalid_identifier = query_stats[~query_stats["qc_all_valid"]][
+            "query_name"
+        ].values
 
         # write valid sequences
         valid_loc = tempfile.mkstemp(suffix="_valid.fasta")[1]
@@ -349,7 +390,9 @@ def split_valid_sequences(query, query_stats, write_mode="w"):
                 # else, we have an invalid sequence
                 else:
                     seqwriter = invalid_fout
-                writer.write_fasta(seqwriter, qry, format_sequence=True, format_pblat=True)
+                writer.write_fasta(
+                    seqwriter, qry, format_sequence=True, format_pblat=True
+                )
 
         # close files
         invalid_fout.close()
@@ -404,5 +447,12 @@ def count_nucleotides(sequence):
     valid_nucleotides = init_UPAC_dictionary(acgt=False)
 
     acgt_counts = sum([iupac_dic[nt] for nt in "ACGT"])
-    iupac_counts = sum([iupac_dic[nt] for nt in iupac_dic.keys() if nt in valid_nucleotides])
-    return acgt_counts, iupac_counts, len(sequence) - acgt_counts - iupac_counts, iupac_dic["N"]
+    iupac_counts = sum(
+        [iupac_dic[nt] for nt in iupac_dic.keys() if nt in valid_nucleotides]
+    )
+    return (
+        acgt_counts,
+        iupac_counts,
+        len(sequence) - acgt_counts - iupac_counts,
+        iupac_dic["N"],
+    )
