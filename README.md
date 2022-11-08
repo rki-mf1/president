@@ -137,6 +137,6 @@ __Note__: max(sequence_lengths) is equal to max(length_query, length_reference).
 
 #### Contributing
 
-If you would like to get involved, here is information on [contribution guidelines and how to test the code locally](https://github.com/rki-mf1/president/blob/main/CONTRIBUTING.md).
+If you would like to get involved, here is information on [contribution guidelines and how to test the code locally](CONTRIBUTING.md).
 
 You can contribute in multiple ways, e.g., reporting bugs, reviewing or refactoring code, requesting or implementing new features, etc.
