@@ -1,10 +1,11 @@
 name: pipeline
 
-on:
-  push:
-    branches:    
-      - main
-      - migration  # REMOVE BEFORE MERGING
+#on:
+#  push:
+#    branches:    
+#      - main
+
+on: [pull_request]
 
 jobs:
 
