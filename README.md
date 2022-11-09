@@ -4,7 +4,7 @@
 [![](https://img.shields.io/badge/ANI-definition-violet.svg)](https://pubmed.ncbi.nlm.nih.gov/17220447/)
 
 [![pipeline](https://github.com/rki-mf1/president/actions/workflows/deploy-pypi.yml/badge.svg)](https://github.com/rki-mf1/president/actions/workflows/deploy-pypi.yml)
-[![coverage report](https://gitlab.com/RKIBioinformaticsPipelines/president/badges/master/coverage.svg)](https://gitlab.com/RKIBioinformaticsPipelines/president/-/commits/master)
+[![codecov](https://codecov.io/gh/rki-mf1/president/branch/main/graph/badge.svg?token=TWSRVVSZM0)](https://codecov.io/gh/rki-mf1/president)
 
 #### PRESIDENT: PaiRwisE Sequence IDENtiTy
 Calculate pairwise nucleotide identity with respect to a reference sequence.
