@@ -9,6 +9,8 @@ jobs:
 
   test:
     runs-on: ${{ matrix.os }}
+    container:
+      image: continuumio/miniconda3:latest
     strategy:
       fail-fast: false
       matrix:
@@ -31,6 +33,7 @@ jobs:
         python -m pip install pandas==1.5
         python -m pip install screed==1.0
         python -m pip install .
+        conda install -c conda-forge -c bioconda pblat=2.5 -y
     - name: Test with pytest
       run: |
         pytest -v --flake8 --pydocstyle --cov=president --cov-fail-under=90 --cov-report html
