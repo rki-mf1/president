@@ -23,7 +23,7 @@ pip install pandas==1.5
 pip install screed==1.0
 pip install pre-commit==2.20
 pip install -e .
-conda install -c conda-forge -c bioconda pblat
+conda install -c conda-forge -c bioconda pblat=2.5 -y
 ```
 
 To run the tests simply execute:
