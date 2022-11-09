@@ -67,13 +67,13 @@ def preprocess(multifasta, suffix):
                     line = line.strip()
                     # replaces whitespaces with a placeholder %space% to avoid errors
                     # needs to be undone later in the code
-                    if len(line) > 0 and line.startswith('>'):
+                    if len(line) > 0 and line.startswith(">"):
                         source.append(os.path.basename(fasta))
                         fout.write(line.replace(" ", "%space%") + "\n")
                     else:
                         # convert sequence to upper case
                         line = line.upper()
                         # replaces gaps
-                        line = line.replace('-', '.')
+                        line = line.replace("-", ".")
                         fout.write(line + "\n")
     return output, np.array(source)
