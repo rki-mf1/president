@@ -9,7 +9,7 @@
 #### PRESIDENT: PaiRwisE Sequence IDENtiTy
 Calculate pairwise nucleotide identity with respect to a reference sequence.
 
-Given a reference and a query sequence, calculate pairwise nucleotide identity with respect to the reference sequence relative to the entire length of the reference. In the main metric, only informative nucleotides (A, T, G, C) are considered identical to each other. The tool also provides some further metrics (e.g. regarding ambiguous 'N's) and splits the input FASTA into _valid_ and _failed_ FASTA files for further processing. 
+Given a reference and a query sequence, calculate pairwise nucleotide identity with respect to the reference sequence relative to the entire length of the reference. In the main metric, only informative nucleotides (A, T, G, C) are considered identical to each other. The tool also provides some further metrics (e.g. regarding ambiguous 'N's) and splits the input FASTA into _valid_ and _failed_ FASTA files for further processing.
 
 #### Installation:
 To install president with conda, run the commands below:
@@ -71,7 +71,7 @@ The transposed version of the output is shown below.
 | file_in_ref                                       | NC_045512.2.fasta                                                                               |
 | ACGT Nucleotide identity                          | 0.9987                                                                                          |
 | ACGT Nucleotide identity (ignoring Ns)            | 0.9994                                                                                          |
-| ACGT Nucleotide identity (ignoring non-ACGTNs)    | 0.9994                                                                                          | 
+| ACGT Nucleotide identity (ignoring non-ACGTNs)    | 0.9994                                                                                          |
 | qc_all_valid                                      | True                                                                                            |
 | qc_is_empty_query                                 | False                                                                                           |
 | qc_post_align_pass_threshold                      | True                                                                                            |
@@ -83,8 +83,8 @@ The transposed version of the output is shown below.
 | acgt_bases                                        | 29883                                                                                           |
 | iupac_bases                                       | 20                                                                                              |
 | non_iupac_bases                                   | 0                                                                                               |
-| N_bases                                           | 20                                                                                              |  
-| length_query                                      | 29903                                                                                           |          
+| N_bases                                           | 20                                                                                              |
+| length_query                                      | 29903                                                                                           |
 | length_reference                                  | 29903                                                                                           |
 | LongestNGap                                       | 20                                                                                              |
 | Matches                                           | 29864                                                                                           |
@@ -133,3 +133,10 @@ __Note__: max(sequence_lengths) is equal to max(length_query, length_reference).
 
 #### ANI definition:
 - https://pubmed.ncbi.nlm.nih.gov/17220447/
+
+
+#### Contributing
+
+If you would like to get involved, here is information on [contribution guidelines and how to test the code locally](CONTRIBUTING.md).
+
+You can contribute in multiple ways, e.g., reporting bugs, reviewing or refactoring code, requesting or implementing new features, etc.
