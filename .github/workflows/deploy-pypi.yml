@@ -34,8 +34,6 @@ jobs:
         coverage xml
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
 
   bump:
     needs: test
