@@ -1,13 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from shutil import which
 
 import pandas as pd
+import pytest
+
 from president import alignment
 
-fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
+fixtures_loc = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
+@pytest.mark.skipif(
+    which("pblat") is None, reason="do not run if pblat is not installed"
+)
 def test_pblat_simple_10MM():
     # read sample data
     reference = os.path.join(fixtures_loc, "100bp_0N_sample_reference.fasta")
@@ -20,13 +26,30 @@ def test_pblat_simple_10MM():
     # run pblat
     alignment_f = alignment.pblat(4, reference, query)
 
-    alignments = pd.read_csv(alignment_f, header=None, sep='\t', skiprows=5)
-    alignments.columns = \
-        ['Matches', 'Mismatches', 'RepMatch', 'Ns', 'QGapCount',
-         'QGapBases', 'TGapCount', 'TGapBases', 'Strand',
-         'QName', 'QSize', 'QStart', 'QEnd', 'TName', 'TSize',
-         'TStart', 'TEnd', 'BlockCount', 'BlockSizes',
-         'QStarts', 'TStarts']
+    alignments = pd.read_csv(alignment_f, header=None, sep="\t", skiprows=5)
+    alignments.columns = [
+        "Matches",
+        "Mismatches",
+        "RepMatch",
+        "Ns",
+        "QGapCount",
+        "QGapBases",
+        "TGapCount",
+        "TGapBases",
+        "Strand",
+        "QName",
+        "QSize",
+        "QStart",
+        "QEnd",
+        "TName",
+        "TSize",
+        "TStart",
+        "TEnd",
+        "BlockCount",
+        "BlockSizes",
+        "QStarts",
+        "TStarts",
+    ]
 
     assert exp_matches == alignments["Matches"].iloc[0]
     assert exp_mismatches == alignments["Mismatches"].iloc[0]
