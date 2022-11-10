@@ -7,7 +7,7 @@ import pandas as pd
 
 from president import writer
 
-fixtures_loc = os.path.join(os.path.dirname(__file__), 'fixtures')
+fixtures_loc = os.path.join(os.path.dirname(__file__), "fixtures")
 
 
 def test_get_filename():
@@ -45,7 +45,13 @@ def test_write_sequences():
     metrics = pd.DataFrame()
     metrics["qc_post_aligned_all_valid"] = [False, False, True, False, False]
     metrics["aligned"] = [False, False, True, False, True]
-    metrics["query_name"] = ["all_x", "acgtn_short", "aligns", "has_iuepac_2", "has_iuepac_3"]
+    metrics["query_name"] = [
+        "all_x",
+        "acgtn_short",
+        "aligns",
+        "has_iuepac_2",
+        "has_iuepac_3",
+    ]
 
     tmpdir = os.path.join(tempfile.mkdtemp(), "")
     writer.write_sequences(query, metrics, tmpdir, "mixed")
@@ -62,7 +68,7 @@ def test_write_sequences():
     shutil.rmtree(tmpdir)
 
     assert valid_seqs == ["aligns"]
-    assert invalid_seqs == ['all_x', 'acgtn_short', 'has_iuepac_2', 'has_iuepac_3']
+    assert invalid_seqs == ["all_x", "acgtn_short", "has_iuepac_2", "has_iuepac_3"]
 
 
 def test_trailing_whitespace():
@@ -71,7 +77,13 @@ def test_trailing_whitespace():
     metrics = pd.DataFrame()
     metrics["Valid"] = [False, False, True, False, False]
     metrics["qc_post_aligned_all_valid"] = [False, False, True, False, True]
-    metrics["query_name"] = ["all_x", "acgtn_short", "aligns", "has_iuepac_2", "has_iuepac_3"]
+    metrics["query_name"] = [
+        "all_x",
+        "acgtn_short",
+        "aligns",
+        "has_iuepac_2",
+        "has_iuepac_3",
+    ]
 
     tmpdir = os.path.join(tempfile.mkdtemp(), "")
     writer.write_sequences(query, metrics, tmpdir, "mixed")
