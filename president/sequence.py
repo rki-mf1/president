@@ -9,7 +9,8 @@ logger = logging.getLogger(__name__)
 
 def to_valid_upper(dna_seq):
     """
-    Transform input sequence to valid output sequence by removing all non-ACGT characters with Ns. Delete gap symboles ('-','.').
+    Transform input sequence to valid output sequence by removing all non-ACGT characters with Ns.
+    Delete gap symboles ('-','.').
 
     Parameters
     ----------
