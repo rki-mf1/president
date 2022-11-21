@@ -10,20 +10,18 @@ Please make sure all tests pass before submitting a pull request. It is also goo
 
 ## Testing the code locally
 
-To test the code locally, you need to install the dependencies for the library in the current environment. Additionally, you need to install the dependencies for testing and pblat. All of those dependencies can be installed with:
+To test the code locally, you need to install the dependencies for the library in the current environment. Additionally, you need to install the dependencies for testing and pblat. The easiest way is:
 
 ```
+conda create -n president -c bioconda president
+conda activate president
 pip install --upgrade pip
 pip install flake8==3.8
 pip install pytest==7.1
 pip install pytest-flake8==1.1
 pip install pytest-pydocstyle==2.3
 pip install pytest-cov==3.0
-pip install pandas==1.5
-pip install screed==1.0
 pip install pre-commit==2.20
-pip install -e .
-conda install -c conda-forge -c bioconda pblat=2.5 -y
 ```
 
 To run the tests simply execute:
