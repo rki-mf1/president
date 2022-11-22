@@ -25,16 +25,16 @@ pip install pytest-cov==3.0
 pip install pre-commit==2.20
 ```
 
-To run the tests simply execute:
-
-```
-pytest -v --flake8 --pydocstyle --cov=president --cov-fail-under=90 --cov-report html
-```
-
-Lastly, you can set up the git hooks scripts to fix formatting errors locally during commits:
+Then, set up the git hooks scripts to fix formatting errors locally during commits:
 
 ```
 pre-commit install
 ```
 
 If black is not executed locally and there are formatting errors, the CI/CD pipeline will fail.
+
+To run the tests simply execute:
+
+```
+pytest -v --flake8 --pydocstyle --cov=president --cov-fail-under=90 --cov-report html
+```
