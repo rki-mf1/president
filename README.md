@@ -61,6 +61,8 @@ The separation between the _valid_ and _invalid_ bin is mainly based on the defi
 Note that for multiple query inputs the valid and invalid sequence headers are NOT associate with their filename. This meta information must be retrieved from the report.
 An example from the call described above can be found [online](https://gitlab.com/RKIBioinformaticsPipelines/president/-/raw/master/examples/report.csv).
 
+**Attention**: If your query sequence includes gap symbols (`-` or `.`; for example from a previous alignment step), `president` will **remove** them from the output sequence! Rational: Gap symbols should be not part of a consensus sequence (for which the tool was developed) and will therefore be removed. **Until version 0.6.7 gap symbols were replaced with `N`!**
+
 The transposed version of the output is shown below.
 
 | variable                                          | value                                                                                           |
